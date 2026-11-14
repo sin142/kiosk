@@ -1,0 +1,2818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>映画館券売機システム</title>
+    <style>
+        /* スクロールおよびスワイプ、テキスト選択の完全無効化（キオスク端末用要件） */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* はみ出た部分のスクロールを禁止 */
+            touch-action: none; /* ブラウザデフォルトのタッチ操作（スワイプ、ピンチ等）を無効化 */
+            user-select: none; /* テキスト選択を無効化 */
+            -webkit-user-select: none; /* Safari用 */
+            -moz-user-select: none; /* Firefox用 */
+            -ms-user-select: none; /* IE/Edge用 */
+        }
+
+        /* 全体の基本スタイル */
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* キオスク端末の画面サイズを想定したコンテナ（横長 1920x1080 に変更） */
+        #app-container {
+            width: 1920px;
+            height: 1080px;
+            background-color: #fff;
+            
+            /* 画面中央に配置（スケールと移動はJSで制御します） */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center;
+            
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* 画面コンテナの基本設定（初期状態は display: none） */
+        .screen-container {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            background-color: #d7d8d2; /* 画面全体の背景色調整 */
+        }
+
+        /* ヘッダー周り（デフォルト） */
+        .screen-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .screen-header h2 {
+            font-size: 36px;
+            margin: 0;
+            color: #212529;
+        }
+
+        /* --- 共通コンポーネント --- */
+        .top-header-kinezo {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            width: 100px;
+            height: 35px;
+            background-color: #a42c1f;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 22px;
+            letter-spacing: 2px;
+            z-index: 10;
+        }
+        .top-clock {
+            position: absolute;
+            top: 90px;
+            left: 40px;
+            font-size: 28px;
+            color: #666;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+        }
+
+        /* --- トップ画面専用追加スタイル --- */
+        .kinezo-btn {
+            background-color: #dc3c2a;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            color: white;
+            cursor: pointer;
+            position: relative;
+            box-sizing: border-box;
+            transition: transform 0.1s, opacity 0.2s;
+            border: 2px solid #e84c3d;
+        }
+        .kinezo-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .kinezo-btn-title {
+            font-size: 56px;
+            font-weight: 900;
+            line-height: 1.2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        .kinezo-btn-sub {
+            font-size: 24px;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        .kinezo-btn-large {
+            width: 480px;
+            height: 580px;
+            padding-top: 70px;
+            text-align: center;
+        }
+
+        /* --- プログレスバー（ヘッダーナビゲーション） --- */
+        .progress-nav {
+            position: absolute;
+            top: 25px;
+            left: 170px;
+            right: 0;
+            display: flex;
+            height: 60px;
+            z-index: 5;
+        }
+        .progress-step {
+            flex: 1;
+            background-color: #bac4b8; /* 非アクティブ時の背景色 */
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-weight: bold;
+            line-height: 1.1;
+        }
+        .progress-step:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            right: -20px;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-top: 30px solid transparent;
+            border-bottom: 30px solid transparent;
+            border-left: 20px solid #bac4b8;
+            z-index: 2;
+        }
+        .progress-step:not(:first-child)::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-top: 30px solid transparent;
+            border-bottom: 30px solid transparent;
+            border-left: 20px solid #d7d8d2; /* 背景色と同じにして隙間を作る */
+            z-index: 1;
+        }
+        .progress-step.active {
+            background-color: #a42c1f;
+            color: white;
+        }
+        .progress-step.active::after {
+            border-left-color: #a42c1f;
+        }
+        .progress-step .ja { font-size: 18px; }
+        .progress-step .en { font-size: 10px; font-weight: normal; }
+
+        /* --- 左側ナビゲーションボタン（戻るボタン等） --- */
+        .side-nav {
+            position: absolute;
+            left: 30px;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .side-btn {
+            width: 110px;
+            height: 140px;
+            background-color: #837f74;
+            border: 2px solid #a5a298;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s, opacity 0.2s;
+            box-sizing: border-box;
+            padding: 10px 5px;
+        }
+        .side-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+        }
+        .side-btn-icon {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .side-btn-text {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+        .side-btn .en {
+            font-size: 13px;
+            font-weight: normal;
+            line-height: 1;
+        }
+
+        /* --- 鑑賞日選択画面専用スタイル --- */
+        .date-title-area {
+            margin-top: 60px;
+            margin-left: 140px;
+            margin-bottom: 50px;
+        }
+        .date-title-main {
+            font-size: 42px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .date-title-sub {
+            font-size: 26px;
+            color: #555;
+        }
+        
+        .date-btn-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-left: 120px;
+        }
+        .date-btn-row {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+        }
+        .date-btn {
+            background: linear-gradient(to bottom, #d63321, #c12b1a);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: transform 0.1s;
+        }
+        .date-btn:active {
+            transform: scale(0.98);
+        }
+        .date-btn-top {
+            width: 1040px;
+            height: 250px;
+        }
+        .date-btn-bottom {
+            width: 507px;
+            height: 230px;
+        }
+        
+        .date-btn-title { font-size: 50px; font-weight: bold; }
+        .date-btn-en { font-size: 24px; margin: 10px 0; }
+        .date-btn-date { font-size: 40px; font-weight: bold; }
+        
+        .date-btn-small-text { font-size: 16px; font-weight: normal; margin-top: 15px; }
+
+        /* --- 作品選択画面専用スタイル --- */
+        .movie-header-area {
+            margin-top: 60px;
+            margin-left: 170px;
+            margin-bottom: 20px;
+        }
+        .movie-title-main {
+            font-size: 38px;
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .movie-title-sub {
+            font-size: 24px;
+            color: #555;
+        }
+        .movie-date-box {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            background-color: #f7ede1;
+            border: 2px solid #dcbfa2;
+            padding: 10px 20px;
+            font-size: 32px;
+            color: #333;
+            box-sizing: border-box;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .movie-count-area {
+            text-align: right;
+            margin-top: 15px;
+            margin-right: 50px;
+            font-size: 24px;
+            color: #555;
+        }
+        .movie-count-num {
+            color: #d63321;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .movie-grid {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        .movie-btn {
+            background: linear-gradient(to bottom, #d9422a, #b32616);
+            border: 1px solid #992012;
+            border-radius: 4px;
+            padding: 15px 20px;
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.1s;
+            height: 105px;
+            box-sizing: border-box;
+        }
+        .movie-btn:active {
+            transform: scale(0.99);
+        }
+        .movie-btn-title {
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1.3;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2; /* 互換性のため追加 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .movie-btn-en {
+            font-size: 14px;
+            color: #ffcccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie-pagination-area {
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        .movie-page-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #555;
+            line-height: 1;
+        }
+        .movie-page-nums {
+            display: flex;
+            align-items: baseline;
+        }
+        .movie-page-current {
+            font-size: 36px;
+            font-weight: bold;
+            color: #d63321;
+        }
+        .movie-page-total {
+            font-size: 24px;
+        }
+        .movie-page-label {
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        /* ページネーション用ボタン共通スタイル */
+        .movie-nav-btn {
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 12px 40px;
+            font-size: 26px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 220px;
+            transition: transform 0.1s;
+        }
+        .movie-nav-btn:active {
+            transform: scale(0.98);
+        }
+        .movie-nav-btn .en {
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+        /* 次へボタン */
+        .movie-next-btn {
+            background: linear-gradient(to bottom, #d63321, #c12b1a);
+        }
+        /* 前へボタン */
+        .movie-prev-btn {
+            background: linear-gradient(to bottom, #837f74, #66635a);
+        }
+
+        /* --- 時間帯選択画面専用スタイル --- */
+        .showtime-header-area {
+            margin-top: 60px;
+            margin-left: 170px;
+            margin-bottom: 15px;
+        }
+        .showtime-title-main {
+            font-size: 36px;
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .showtime-title-sub {
+            font-size: 22px;
+            color: #555;
+        }
+        
+        .showtime-movie-box {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            background-color: #e4dfd6;
+            border: 1px solid #c8bba6;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .showtime-movie-title {
+            font-size: 30px;
+            font-weight: normal;
+            color: #333;
+            line-height: 1.2;
+        }
+        .showtime-movie-en {
+            font-size: 18px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .showtime-date-row {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            display: flex;
+            box-sizing: border-box;
+            border: 1px solid #bbb;
+            background-color: #dedede;
+        }
+        .showtime-date-cell {
+            flex: 1;
+            padding: 8px 15px;
+            font-size: 26px;
+            color: #666;
+            border-right: 1px solid #bbb;
+            text-align: left;
+        }
+        .showtime-date-cell:last-child {
+            border-right: none;
+        }
+        .showtime-date-cell.active {
+            background-color: #d7d8d2;
+            color: #333;
+        }
+
+        .showtime-list-area {
+            margin-left: 170px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: calc(100% - 220px);
+        }
+        .showtime-btn {
+            background: linear-gradient(to bottom, #d63321, #b22616);
+            border: 2px solid #a42c1f;
+            border-radius: 6px;
+            padding: 10px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            width: 800px;
+            height: 120px;
+            box-sizing: border-box;
+            transition: transform 0.1s;
+        }
+        .showtime-btn:active {
+            transform: scale(0.99);
+        }
+        .showtime-info-left {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            justify-content: center;
+        }
+        .showtime-theater-info {
+            font-size: 22px;
+            font-weight: normal;
+            margin-bottom: 5px;
+            display: flex;
+            gap: 15px;
+        }
+        .showtime-time-info {
+            font-size: 52px;
+            font-weight: bold;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+        .showtime-status-icon {
+            width: 60px;
+            height: 60px;
+            border: 5px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .showtime-status-icon-inner {
+            width: 34px;
+            height: 34px;
+            border: 5px solid white;
+            border-radius: 50%;
+        }
+
+        .showtime-pagination-bottom {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #b13324;
+            font-weight: bold;
+        }
+        .showtime-pagination-bottom .page-nums {
+            font-size: 28px;
+            line-height: 1;
+        }
+        .showtime-pagination-bottom .page-label {
+            font-size: 18px;
+        }
+
+        /* --- 座席選択画面 (screen-seat) 専用スタイル --- */
+        .seat-header-area {
+            margin-top: 60px;
+            margin-left: 170px;
+            margin-bottom: 20px;
+        }
+        .seat-title-main {
+            font-size: 32px;
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .seat-title-sub {
+            font-size: 20px;
+            color: #555;
+        }
+
+        .seat-main-content {
+            display: flex;
+            margin-left: 40px;
+            margin-right: 40px;
+            height: 700px;
+            gap: 20px;
+        }
+
+        .seat-legend-sidebar {
+            width: 140px; 
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .legend-box.vacant {
+            border: 2px solid #b13324;
+            background: #fff;
+        }
+        .legend-box.selected {
+            background: #b13324;
+        }
+        .legend-box.reserved {
+            background: #555;
+        }
+        .legend-box.notsale {
+            background: #ccc;
+            color: #666;
+            font-weight: bold;
+        }
+        .legend-text {
+            font-size: 16px;
+            line-height: 1.2;
+            color: #333;
+        }
+        .legend-text .en {
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* スクリーンや座席を含むラッパー。上部の余白を削って上に寄せました */
+        .seat-map-wrapper {
+            flex: 1;
+            background-color: #d8dad3;
+            border: 1px solid #c0c0c0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px; /* 40 -> 20 に減らして全体を上に寄せる */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .screen-bar {
+            width: 70%;
+            height: 40px;
+            background-color: #a0a0a0;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 10px; /* 20 -> 10 に詰める */
+            border-radius: 4px;
+        }
+
+        /* 全体拡大のためのグリッド再設計 */
+        .seat-grid {
+            display: grid;
+            grid-template-columns: 60px 40px repeat(18, 48px) 60px; /* アルファベットと座席の間に矢印用の列を追加 */
+            row-gap: 22px; /* 列同士の間隔（縦）を維持 */
+            column-gap: 8px; /* 列内の座席の間隔（横）を詰める */
+            justify-items: center;
+            align-items: center;
+            /* 余計なmargin-topを削除し、下部余白を自動で埋めて上寄りに */
+            margin-bottom: auto;
+        }
+
+        .seat-row-label {
+            font-size: 30px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .seat-btn-cell {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #b13324;
+            background-color: #fff;
+            color: #b13324;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .seat-btn-cell:active {
+            transform: scale(0.9);
+        }
+        .seat-btn-cell.selected {
+            background-color: #b13324;
+            color: #fff;
+            border-color: #b13324;
+        }
+        .seat-btn-cell.reserved {
+            background-color: #555;
+            border-color: #555;
+            color: #fff;
+            cursor: not-allowed;
+        }
+        .seat-btn-cell.notsale {
+            background-color: #ccc;
+            border-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .seat-btn-cell.wheelchair {
+            border-color: #b13324;
+        }
+
+        .seat-footer-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 170px;
+            right: 40px;
+            height: 140px;
+            background-color: #c4c8c1;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            gap: 30px;
+        }
+
+        .seat-mini-map {
+            width: 140px;
+            height: 80px;
+            border: 3px solid #4CAF50;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .seat-selected-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .seat-selected-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .seat-selected-slots {
+            display: flex;
+            gap: 15px;
+        }
+        .seat-slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+        }
+        .seat-slot-box {
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            border-bottom: 2px dashed #999;
+            margin-bottom: 5px;
+        }
+        .seat-slot-box.filled {
+            border: 2px solid #b13324;
+            background-color: #fff;
+            border-bottom: 2px solid #b13324;
+        }
+        .seat-slot-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            height: 20px;
+            line-height: 1;
+        }
+
+        .seat-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+        }
+
+        .seat-action-btn {
+            width: 200px;
+            height: 80px;
+            border: none;
+            border-radius: 8px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            cursor: not-allowed;
+            background-color: #a0a0a0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .seat-action-btn.active {
+            cursor: pointer;
+            background-color: #0277bd;
+        }
+        .seat-action-btn.active:active {
+            transform: scale(0.98);
+        }
+
+        /* --- 券種選択画面 (screen-ticket) 専用追加スタイル --- */
+        .ticket-header-area {
+            margin-top: 60px;
+            margin-left: 170px;
+            margin-bottom: 10px;
+        }
+        .ticket-title-main {
+            font-size: 30px;
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .ticket-title-sub {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .ticket-movie-bar {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            background-color: #f7ede1;
+            border: 1px solid #dcbfa2;
+            padding: 8px 15px;
+            box-sizing: border-box;
+            border-bottom: none;
+        }
+        .ticket-movie-name {
+            font-size: 24px;
+            color: #333;
+        }
+        .ticket-movie-en {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .ticket-info-bar {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            display: flex;
+            background-color: #dedede;
+            border: 1px solid #bbb;
+            box-sizing: border-box;
+            height: 40px;
+            align-items: center;
+        }
+        .ticket-info-cell {
+            padding: 0 15px;
+            font-size: 20px;
+            color: #555;
+            border-right: 1px solid #bbb;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .ticket-info-cell:last-child {
+            border-right: none;
+        }
+        .ticket-info-count {
+            width: 100px;
+            justify-content: center;
+        }
+        .ticket-info-price {
+            width: 150px;
+            justify-content: flex-end;
+            font-weight: bold;
+        }
+
+        .ticket-main-content {
+            margin-left: 170px;
+            margin-top: 15px;
+            width: calc(100% - 220px);
+            display: flex;
+            gap: 20px;
+            position: relative;
+        }
+        .ticket-seat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 600px;
+        }
+        .ticket-seat-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            height: 80px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .ticket-seat-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+        }
+        .ticket-seat-box {
+            width: 25px;
+            height: 25px;
+            background-color: #d63321;
+            margin-bottom: 5px;
+        }
+        .ticket-seat-id {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d63321;
+        }
+        
+        .ticket-select-btn {
+            flex: 1;
+            height: 100%;
+            background: linear-gradient(to bottom, #d9422a, #b32616);
+            border: 1px solid #992012;
+            border-radius: 4px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: transform 0.1s;
+        }
+        .ticket-select-btn:active {
+            transform: scale(0.98);
+        }
+        .ticket-select-main {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .ticket-select-sub {
+            font-size: 14px;
+        }
+
+        .ticket-selected-btn {
+            flex: 1;
+            height: 100%;
+            background: linear-gradient(to bottom, #d9422a, #b32616);
+            border: 1px solid #992012;
+            border-radius: 4px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: transform 0.1s;
+        }
+        .ticket-selected-btn:active {
+            transform: scale(0.98);
+        }
+        .ticket-selected-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .ticket-selected-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .ticket-selected-en {
+            font-size: 12px;
+        }
+        .ticket-selected-price {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .ticket-guide {
+            background-color: rgba(255,255,255,0.8);
+            border: 1px solid #ccc;
+            padding: 20px;
+            font-size: 26px;
+            color: #333;
+            border-radius: 8px;
+            position: absolute;
+            left: 630px;
+            top: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .ticket-guide::before {
+            content: "";
+            position: absolute;
+            top: 30px;
+            left: -20px;
+            border-width: 10px 20px 10px 0;
+            border-style: solid;
+            border-color: transparent rgba(255,255,255,0.8) transparent transparent;
+        }
+
+        .ticket-bottom-actions {
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .ticket-submit-btn {
+            background: linear-gradient(to bottom, #00aced, #007bb5);
+            border: 1px solid #005a87;
+            border-radius: 6px;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            width: 140px;
+            height: 70px;
+            transition: transform 0.1s;
+        }
+        .ticket-submit-btn:active {
+            transform: scale(0.98);
+        }
+        .ticket-submit-btn .main {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .ticket-submit-btn .en {
+            font-size: 14px;
+        }
+
+        /* --- モーダル (ポップアップ) スタイル --- */
+        .ticket-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ticket-modal {
+            width: 900px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .ticket-modal-header {
+            background-color: #b33924;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticket-modal-header .ja {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .ticket-modal-header .en {
+            font-size: 16px;
+        }
+        .ticket-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .ticket-modal-body {
+            padding: 20px;
+            background-color: #e2e2e2;
+            position: relative;
+        }
+        .ticket-modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .ticket-type-btn {
+            background: linear-gradient(to bottom, #d9422a, #b32616);
+            border: 2px solid #992012;
+            border-radius: 6px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            text-align: left;
+            transition: transform 0.1s;
+        }
+        .ticket-type-btn:active {
+            transform: scale(0.98);
+        }
+        .ticket-type-btn .name {
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .ticket-type-btn .name .en {
+            font-size: 12px;
+            font-weight: normal;
+        }
+        .ticket-type-btn .price {
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .ticket-modal-page {
+            text-align: center;
+            font-size: 24px;
+            color: #555;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .ticket-modal-page span {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        /* --- 確認画面 (screen-confirm) 専用スタイル --- */
+        .confirm-header-area {
+            margin-top: 60px;
+            margin-left: 170px;
+            margin-bottom: 20px;
+        }
+        .confirm-title-main {
+            font-size: 38px;
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .confirm-title-sub {
+            font-size: 24px;
+            color: #555;
+        }
+        .confirm-content-box {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            background-color: #e6e2da; /* 全体のベース背景色 */
+            border: 1px solid #dcbfa2;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .confirm-movie-bar {
+            background-color: #f3e8dd;
+            padding: 15px 25px;
+            border-bottom: 2px solid #dcbfa2;
+        }
+        .confirm-movie-title {
+            font-size: 26px;
+            color: #333;
+            font-weight: normal;
+        }
+        .confirm-movie-en {
+            font-size: 16px;
+            color: #666;
+        }
+        .confirm-details-area {
+            padding: 20px 25px;
+        }
+        .confirm-details-label {
+            font-size: 20px;
+            color: #a45b4c;
+            margin-bottom: 10px;
+        }
+        .confirm-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .confirm-row {
+            background-color: #dedbd3; /* ストライプ背景1 */
+        }
+        .confirm-row:nth-child(even) {
+            background-color: #d6d3cb; /* ストライプ背景2 */
+        }
+        .confirm-row.total-row {
+            background-color: transparent;
+            border-top: 2px solid #ccc;
+        }
+        .confirm-th {
+            width: 200px;
+            padding: 15px 20px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .confirm-th .ja {
+            font-size: 18px;
+            color: #555;
+        }
+        .confirm-th .en {
+            font-size: 12px;
+            color: #888;
+        }
+        .confirm-td {
+            padding: 15px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            vertical-align: middle;
+        }
+        .confirm-total-td {
+            font-size: 30px;
+        }
+        .confirm-message-area {
+            margin-left: 170px;
+            margin-top: 20px;
+            width: calc(100% - 220px);
+        }
+        .confirm-message-label {
+            font-size: 16px;
+            color: #d18282;
+            margin-bottom: 5px;
+        }
+        .confirm-message-text {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .confirm-message-text .en {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .confirm-submit-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            background: linear-gradient(to bottom, #00aced, #007bb5);
+            border: 1px solid #005a87;
+            border-radius: 6px;
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: transform 0.1s;
+            height: 80px;
+            min-width: 200px;
+        }
+        .confirm-submit-btn:active {
+            transform: scale(0.98);
+        }
+        .confirm-submit-btn .main {
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .confirm-submit-btn .en {
+            font-size: 14px;
+        }
+
+        /* ボタンの共通スタイル（他画面用） */
+        .btn {
+            display: inline-block;
+            padding: 20px 40px;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            background-color: #0d6efd;
+            color: #fff;
+            transition: opacity 0.2s;
+            margin: 10px;
+        }
+        .btn:active {
+            opacity: 0.7;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-block {
+            display: block;
+            width: 60%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+        }
+
+        /* フッター（戻るボタン等の配置エリア） */
+        .screen-footer {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* コンテンツエリア */
+        .content-area {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+
+    <!-- 1. トップ画面（サービス選択） -->
+    <div id="screen-top" class="screen-container" style="display: block; position: relative; background-color: #fff;">
+        <!-- 左上のロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- メインタイトル -->
+        <div class="screen-header" style="margin-top: 120px; border-bottom: none; margin-bottom: 50px;">
+            <h2 style="font-size: 46px; font-weight: 500; color: #333; margin-bottom: 15px;">ご希望のサービスをおえらびください。</h2>
+            <p style="font-size: 26px; color: #666; margin: 0;">Please select the service.</p>
+        </div>
+
+        <!-- ボタンエリア -->
+        <div style="display: flex; justify-content: center; gap: 40px; width: 100%;">
+            
+            <!-- 左ボタン：チケットを予約済みの方 -->
+            <div class="kinezo-btn kinezo-btn-large" onclick="navigate('screen-date')">
+                <div class="kinezo-btn-title">チケットを<br>予約済みの方</div>
+                <div class="kinezo-btn-sub">Reserved</div>
+                
+                <!-- CSSによるアイコン描画 -->
+                <div style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 25px;">
+                    <!-- スマホ -->
+                    <div style="width: 70px; height: 120px; border: 4px solid white; border-radius: 8px; position: relative; box-sizing: border-box;">
+                        <div style="width: 44px; height: 50px; background-color: white; color: #dc3c2a; margin: 20px auto 0; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 4px; line-height: 1.1;">キネ<br>パス</div>
+                        <div style="width: 8px; height: 8px; background: white; border-radius: 50%; position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);"></div>
+                    </div>
+                    <!-- PCモニター -->
+                    <div style="width: 220px; height: 150px; border: 4px solid white; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;">
+                        <div style="font-size: 40px; font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: 2px;">KINEZO</div>
+                        <div style="font-size: 10px; margin-top: 5px;">ONLINE ENTERTAINMENT SYSTEM</div>
+                        <!-- スタンド -->
+                        <div style="width: 50px; height: 20px; border-left: 4px solid white; border-right: 4px solid white; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); box-sizing: border-box;"></div>
+                        <div style="width: 90px; height: 4px; background: white; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右ボタン：チケットを購入する方 -->
+            <div class="kinezo-btn kinezo-btn-large" onclick="navigate('screen-date')">
+                <div class="kinezo-btn-title">チケットを<br>購入する方</div>
+                <div class="kinezo-btn-sub">Purchase</div>
+                
+                <!-- CSSによるアイコン描画 -->
+                <div style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px;">
+                    <!-- チケット -->
+                    <div style="width: 180px; height: 115px; background-color: white; color: #dc3c2a; border-radius: 6px; padding: 15px; box-sizing: border-box; text-align: left;">
+                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px; letter-spacing: 1px;">TICKET</div>
+                        <div style="width: 100%; height: 5px; background-color: #dc3c2a; margin-bottom: 10px;"></div>
+                        <div style="width: 100%; height: 5px; background-color: #dc3c2a; margin-bottom: 10px;"></div>
+                        <div style="width: 100%; height: 5px; background-color: #dc3c2a;"></div>
+                    </div>
+                    <!-- 硬貨 -->
+                    <div style="width: 90px; height: 90px; background-color: white; color: #dc3c2a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 60px; font-weight: bold; box-sizing: border-box;">
+                        ￥
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 注意書き -->
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 60px; gap: 30px;">
+            <div style="width: 75px; height: 75px; background-color: #ea4d30; border-radius: 50%; color: white; font-size: 55px; font-weight: bold; display: flex; align-items: center; justify-content: center;">!</div>
+            <div style="text-align: left;">
+                <p style="font-size: 30px; color: #444; margin: 0 0 5px 0;">紙の前売券・割引券をご利用の方はチケット窓口<br>までお越しください。</p>
+                <p style="font-size: 20px; color: #888; margin: 0;">Please use an advance ticket(except mubichike) or discount ticket at the box office.</p>
+            </div>
+        </div>
+
+        <!-- 商標 -->
+        <div style="position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 14px; color: #888;">
+            QRコードは(株)デンソーウェーブの登録商標です。
+        </div>
+    </div>
+
+    <!-- 2. 鑑賞日選択画面 -->
+    <div id="screen-date" class="screen-container">
+        <!-- ロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- プログレスナビゲーション -->
+        <div class="progress-nav">
+            <div class="progress-step active">
+                <span class="ja">鑑賞日選択</span>
+                <span class="en">Choose the day</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">作品選択</span>
+                <span class="en">Choose the title</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">時間帯選択</span>
+                <span class="en">Choose the schedule</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">座席選択</span>
+                <span class="en">Choose the seat</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">券種選択</span>
+                <span class="en">Choose the tickets</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">内容確認</span>
+                <span class="en">Confirm details</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">お支払い</span>
+                <span class="en">Payment</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">発券</span>
+                <span class="en">Ticket</span>
+            </div>
+        </div>
+
+        <!-- サイドナビゲーション（戻るボタン） -->
+        <div class="side-nav">
+            <!-- 最初へ戻る -->
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="2" x2="8" y2="26" />
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">最初へ<br>戻る</div>
+                <div class="en">Top</div>
+            </div>
+            <!-- ひとつ戻る -->
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">ひとつ<br>戻る</div>
+                <div class="en">Back</div>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="date-title-area">
+            <div class="date-title-main">ご鑑賞日をお選びください。</div>
+            <div class="date-title-sub">Please select the date.</div>
+        </div>
+
+        <div class="date-btn-area">
+            <!-- 本日 -->
+            <button class="date-btn date-btn-top" onclick="selectDate('today')">
+                <div class="date-btn-title">本日</div>
+                <div class="date-btn-en">Today</div>
+                <div class="date-btn-date">10月27日 (火)</div>
+            </button>
+            
+            <div class="date-btn-row">
+                <!-- 明日以降 -->
+                <button class="date-btn date-btn-bottom" onclick="selectDate('future')">
+                    <div class="date-btn-title">明日以降</div>
+                    <div class="date-btn-en">After Tomorrow</div>
+                </button>
+                
+                <!-- イベントチケット -->
+                <button class="date-btn date-btn-bottom" onclick="selectDate('event')">
+                    <div class="date-btn-title">イベントチケット</div>
+                    <div class="date-btn-small-text">舞台挨拶・ライブビューイング<br>その他イベント上映会</div>
+                    <div class="date-btn-en">Event Ticket</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 作品選択画面 -->
+    <div id="screen-movie" class="screen-container">
+        <!-- ロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- プログレスナビゲーション -->
+        <div class="progress-nav">
+            <div class="progress-step">
+                <span class="ja">鑑賞日選択</span>
+                <span class="en">Choose the day</span>
+            </div>
+            <div class="progress-step active">
+                <span class="ja">作品選択</span>
+                <span class="en">Choose the title</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">時間帯選択</span>
+                <span class="en">Choose the schedule</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">座席選択</span>
+                <span class="en">Choose the seat</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">券種選択</span>
+                <span class="en">Choose the tickets</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">内容確認</span>
+                <span class="en">Confirm details</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">お支払い</span>
+                <span class="en">Payment</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">発券</span>
+                <span class="en">Ticket</span>
+            </div>
+        </div>
+
+        <!-- サイドナビゲーション -->
+        <div class="side-nav">
+            <!-- 最初へ戻る -->
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="2" x2="8" y2="26" />
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">最初へ<br>戻る</div>
+                <div class="en">Top</div>
+            </div>
+            <!-- ひとつ戻る -->
+            <div class="side-btn" onclick="navigate('screen-date')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">ひとつ<br>戻る</div>
+                <div class="en">Back</div>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="movie-header-area">
+            <div class="movie-title-main">ご覧になる作品をお選びください。</div>
+            <div class="movie-title-sub">Please select a movie.</div>
+        </div>
+
+        <div class="movie-date-box">
+            10月27日(火)の上映
+        </div>
+
+        <div class="movie-count-area">
+            上映作品数： <span id="movie-total-count" class="movie-count-num">0</span> 作品
+        </div>
+
+        <!-- JavaScriptで動的に要素が追加されるコンテナ -->
+        <div id="movie-grid-container" class="movie-grid">
+            <!-- ムービーボタンがここに挿入されます -->
+        </div>
+
+        <!-- ページネーションエリア -->
+        <div class="movie-pagination-area">
+            <!-- 前へボタン（JSで表示制御） -->
+            <button id="movie-prev-btn" class="movie-nav-btn movie-prev-btn" onclick="prevMoviePage()" style="display: none;">
+                前の作品へ
+                <span class="en">Prev movie</span>
+            </button>
+
+            <!-- ページ番号 -->
+            <div class="movie-page-text">
+                <div class="movie-page-nums">
+                    <span id="movie-page-current" class="movie-page-current">1</span><span id="movie-page-total" class="movie-page-total">/1</span>
+                </div>
+                <span class="movie-page-label">ページ</span>
+            </div>
+
+            <!-- 次へボタン（JSで表示制御） -->
+            <button id="movie-next-btn" class="movie-nav-btn movie-next-btn" onclick="nextMoviePage()">
+                次の作品へ
+                <span class="en">Next movie</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 4. 時間帯選択画面 -->
+    <div id="screen-showtime" class="screen-container">
+        <!-- ロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- プログレスナビゲーション -->
+        <div class="progress-nav">
+            <div class="progress-step">
+                <span class="ja">鑑賞日選択</span>
+                <span class="en">Choose the day</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">作品選択</span>
+                <span class="en">Choose the title</span>
+            </div>
+            <div class="progress-step active">
+                <span class="ja">時間帯選択</span>
+                <span class="en">Choose the schedule</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">座席選択</span>
+                <span class="en">Choose the seat</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">券種選択</span>
+                <span class="en">Choose the tickets</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">内容確認</span>
+                <span class="en">Confirm details</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">お支払い</span>
+                <span class="en">Payment</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">発券</span>
+                <span class="en">Ticket</span>
+            </div>
+        </div>
+
+        <!-- サイドナビゲーション -->
+        <div class="side-nav">
+            <!-- 最初へ戻る -->
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="2" x2="8" y2="26" />
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">最初へ<br>戻る</div>
+                <div class="en">Top</div>
+            </div>
+            <!-- ひとつ戻る -->
+            <div class="side-btn" onclick="navigate('screen-movie')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">ひとつ<br>戻る</div>
+                <div class="en">Back</div>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="showtime-header-area">
+            <div class="showtime-title-main">上映時間をお選びください。</div>
+            <div class="showtime-title-sub">Please select a showtime.</div>
+        </div>
+
+        <!-- 選択された作品情報 -->
+        <div class="showtime-movie-box">
+            <div id="selected-movie-title" class="showtime-movie-title">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
+            <div id="selected-movie-en" class="showtime-movie-en">Made in Abyss</div>
+        </div>
+
+        <!-- 日付帯 -->
+        <div class="showtime-date-row">
+            <div class="showtime-date-cell active">10月 27日 (火)</div>
+            <div class="showtime-date-cell"></div>
+            <div class="showtime-date-cell"></div>
+            <div class="showtime-date-cell"></div>
+        </div>
+
+        <!-- スケジュールリスト -->
+        <div class="showtime-list-area">
+            <!-- 16:30 -->
+            <div class="showtime-btn" onclick="selectShowtime('シアター11', '16:30', '17:55')">
+                <div class="showtime-info-left">
+                    <div class="showtime-theater-info">
+                        <span>シアター11</span>
+                        <span>座席数:101</span>
+                    </div>
+                    <div class="showtime-time-info">16:30 〜17:55</div>
+                </div>
+                <!-- 空席あり（◎）アイコン -->
+                <div class="showtime-status-icon">
+                    <div class="showtime-status-icon-inner"></div>
+                </div>
+            </div>
+
+            <!-- 21:40 -->
+            <div class="showtime-btn" onclick="selectShowtime('シアター6', '21:40', '23:05')">
+                <div class="showtime-info-left">
+                    <div class="showtime-theater-info">
+                        <span>シアター11</span>
+                        <span>座席数:101</span>
+                    </div>
+                    <div class="showtime-time-info">21:40 〜23:05</div>
+                </div>
+                <!-- 空席あり（◎）アイコン -->
+                <div class="showtime-status-icon">
+                    <div class="showtime-status-icon-inner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下部ページネーション表示（デザインのみ） -->
+        <div class="showtime-pagination-bottom">
+            <div class="page-nums">1/1</div>
+            <div class="page-label">ページ</div>
+        </div>
+    </div>
+
+    <!-- 5. 座席選択画面 -->
+    <div id="screen-seat" class="screen-container">
+        <!-- ロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- プログレスナビゲーション -->
+        <div class="progress-nav">
+            <div class="progress-step">
+                <span class="ja">鑑賞日選択</span>
+                <span class="en">Choose the day</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">作品選択</span>
+                <span class="en">Choose the title</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">時間帯選択</span>
+                <span class="en">Choose the schedule</span>
+            </div>
+            <div class="progress-step active">
+                <span class="ja">座席選択</span>
+                <span class="en">Choose the seat</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">券種選択</span>
+                <span class="en">Choose the tickets</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">内容確認</span>
+                <span class="en">Confirm details</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">お支払い</span>
+                <span class="en">Payment</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">発券</span>
+                <span class="en">Ticket</span>
+            </div>
+        </div>
+
+        <!-- サイドナビゲーション -->
+        <div class="side-nav">
+            <!-- 最初へ戻る -->
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="2" x2="8" y2="26" />
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">最初へ<br>戻る</div>
+                <div class="en">Top</div>
+            </div>
+            <!-- ひとつ戻る -->
+            <div class="side-btn" onclick="navigate('screen-showtime')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">ひとつ<br>戻る</div>
+                <div class="en">Back</div>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="seat-header-area">
+            <div class="seat-title-main">座席をお選びください。最大5席まで選択できます。</div>
+            <div class="seat-title-sub">Please select seats. A maximum of 5 seats.</div>
+        </div>
+
+        <div class="seat-main-content">
+            <!-- 左側凡例 -->
+            <div class="seat-legend-sidebar">
+                <div class="legend-item">
+                    <div class="legend-box vacant"></div>
+                    <div class="legend-text">空席<br><span class="en">Vacant</span></div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box selected"></div>
+                    <div class="legend-text">選択中<br><span class="en">Selected</span></div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box reserved">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div class="legend-text">予約済み<br><span class="en">Reserved</span></div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box notsale">✖</div>
+                    <div class="legend-text">販売不可<br><span class="en">Not Sale</span></div>
+                </div>
+                
+                <!-- 座席の種類（グレーアウト） -->
+                <div class="legend-item" style="margin-top: 30px; opacity: 0.5;">
+                    <div style="width: 80px; height: 100px; background: #bbb; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 5px; text-align: center;">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M19 13v-2c-1.5 0-2.5-1.5-2.5-3V5h-9v3c0 1.5-1 3-2.5 3v2h14z"/></svg>
+                        <div style="font-size: 14px; font-weight: bold; margin-top: 5px; line-height: 1.1;">座席の<br>種類</div>
+                        <div style="font-size: 10px; margin-top: 2px;">Seat<br>Information</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中央マップエリア -->
+            <div class="seat-map-wrapper">
+                <!-- 非常口アイコン（走る人のアイコンに変更・拡大） -->
+                <div style="position: absolute; top: 25px; right: 50px; width: 60px; height: 60px; border: 4px solid #4CAF50; display: flex; align-items: center; justify-content: center;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="#4CAF50">
+                        <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 6.7 1.4z"/>
+                    </svg>
+                    <div style="position: absolute; bottom: -22px; font-size: 14px; color: #4CAF50; font-weight: bold;">非常口</div>
+                    <div style="position: absolute; bottom: -36px; font-size: 12px; color: #4CAF50;">EXIT</div>
+                </div>
+
+                <!-- スクリーンのバー（拡大） -->
+                <div class="screen-bar">スクリーン (Screen)</div>
+                <!-- 上向き矢印（拡大） -->
+                <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 25px solid #a0a0a0; margin-bottom: 15px;"></div>
+
+                <!-- 座席グリッド（拡大） -->
+                <div style="position: relative; margin-top: 10px;">
+                    <!-- 縦の矢印（アルファベット列と座席列の間） -->
+                    <div style="position: absolute; left: 85px; top: -30px; width: 6px; height: calc(100% + 60px); background: #666;">
+                        <div style="position: absolute; top: -20px; left: -12px; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 20px solid #666;"></div>
+                        <div style="position: absolute; bottom: 0; left: -12px; width: 30px; height: 6px; background: #666;"></div>
+                    </div>
+                    <div id="seat-grid" class="seat-grid">
+                        <!-- JavaScriptで動的に生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下部フッターバー -->
+        <div class="seat-footer-bar">
+            <!-- ミニマップ（装飾用ダミー） -->
+            <div class="seat-mini-map">
+                <div style="position: absolute; top: 10px; left: 10%; width: 80%; height: 5px; background: #ccc;"></div>
+                <div style="position: absolute; top: 30px; left: 10%; width: 80%; height: 40px; background: #eee; display: flex; flex-wrap: wrap; gap: 2px;">
+                    <!-- 小さい点（座席の模倣） -->
+                    <script>
+                        for(let i=0; i<30; i++) {
+                            document.write('<div style="width: 4px; height: 4px; background: #ccc; margin: 1px;"></div>');
+                        }
+                    </script>
+                </div>
+            </div>
+
+            <div class="seat-selected-info">
+                <div class="seat-selected-title">選択中の座席（最大5席）<br><span class="en" style="font-size:14px;color:#777;">selected seats(Max 5)</span></div>
+                <div class="seat-selected-slots">
+                    <div class="seat-slot-wrapper"><div class="seat-slot-box"></div><div class="seat-slot-text"></div></div>
+                    <div class="seat-slot-wrapper"><div class="seat-slot-box"></div><div class="seat-slot-text"></div></div>
+                    <div class="seat-slot-wrapper"><div class="seat-slot-box"></div><div class="seat-slot-text"></div></div>
+                    <div class="seat-slot-wrapper"><div class="seat-slot-box"></div><div class="seat-slot-text"></div></div>
+                    <div class="seat-slot-wrapper"><div class="seat-slot-box"></div><div class="seat-slot-text"></div></div>
+                </div>
+            </div>
+
+            <div class="seat-actions">
+                <button id="seat-reset-btn" class="seat-action-btn" onclick="resetSeats()">選択をリセット<br><span style="font-size:14px;font-weight:normal;">Reset Selected Seat</span></button>
+                <button id="seat-submit-btn" class="seat-action-btn" onclick="confirmSeats()">決定<br><span style="font-size:14px;font-weight:normal;">OK</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. アカウント連携確認画面 -->
+    <div id="screen-account" class="screen-container" style="background-color: #fff;">
+        <div class="screen-header">
+            <h2>会員アカウント連携</h2>
+        </div>
+        <div class="content-area">
+            <!-- 次へ進む際に initTicketScreen() を実行して券種選択画面を描画 -->
+            <button class="btn btn-block" onclick="initTicketScreen(); navigate('screen-ticket')">会員証（QRコード）を読み取る</button>
+            <button class="btn btn-block btn-secondary" onclick="initTicketScreen(); navigate('screen-ticket')">連携せずに次へ進む</button>
+        </div>
+        <div class="screen-footer">
+            <button class="btn btn-secondary" onclick="navigate('screen-seat')">戻る</button>
+        </div>
+    </div>
+
+    <!-- 7. 券種選択画面 (画像をもとにUI構築) -->
+    <div id="screen-ticket" class="screen-container">
+        <!-- ロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- プログレスナビゲーション -->
+        <div class="progress-nav">
+            <div class="progress-step">
+                <span class="ja">鑑賞日選択</span>
+                <span class="en">Choose the day</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">作品選択</span>
+                <span class="en">Choose the title</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">時間帯選択</span>
+                <span class="en">Choose the schedule</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">座席選択</span>
+                <span class="en">Choose the seat</span>
+            </div>
+            <div class="progress-step active">
+                <span class="ja">券種選択</span>
+                <span class="en">Choose the tickets</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">内容確認</span>
+                <span class="en">Confirm details</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">お支払い</span>
+                <span class="en">Payment</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">発券</span>
+                <span class="en">Ticket</span>
+            </div>
+        </div>
+
+        <!-- サイドナビゲーション -->
+        <div class="side-nav">
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="2" x2="8" y2="26" />
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">最初へ<br>戻る</div>
+                <div class="en">Top</div>
+            </div>
+            <div class="side-btn" onclick="navigate('screen-account')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">ひとつ<br>戻る</div>
+                <div class="en">Back</div>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="ticket-header-area">
+            <div class="ticket-title-main">座席ごとに券種を選択してください。</div>
+            <div class="ticket-title-sub">Please select a ticket type for each seat.</div>
+        </div>
+
+        <!-- 作品名バー -->
+        <div class="ticket-movie-bar">
+            <div class="ticket-movie-name" id="ticket-movie-name">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
+            <div class="ticket-movie-en" id="ticket-movie-en">Made in Abyss</div>
+        </div>
+
+        <!-- 日時・シアター・枚数・金額バー -->
+        <div class="ticket-info-bar">
+            <div class="ticket-info-cell" id="ticket-date-text">10月27日(火)</div>
+            <div class="ticket-info-cell" id="ticket-time-text">16:30 〜 17:55</div>
+            <div class="ticket-info-cell" id="ticket-theater-text">シアター11</div>
+            <div class="ticket-info-cell ticket-info-count" id="ticket-count-text">0 / 1枚</div>
+            <div class="ticket-info-cell ticket-info-price" id="ticket-price-text">-- , ---</div>
+        </div>
+
+        <!-- 券種選択リストと右側ガイド -->
+        <div class="ticket-main-content">
+            <div class="ticket-seat-list" id="ticket-seat-list">
+                <!-- JSで動的生成 -->
+            </div>
+            <div class="ticket-guide" id="ticket-guide">
+                こちらをタッチして、<br>座席ごとに券種を<br>選択してください。
+            </div>
+        </div>
+
+        <!-- 右下アクションボタン群 -->
+        <div class="ticket-bottom-actions">
+            <!-- 全席選択後に表示される決定ボタン（内容確認画面へ遷移） -->
+            <button id="ticket-submit-btn" class="ticket-submit-btn" onclick="initConfirmScreen(); navigate('screen-confirm')" style="display:none;">
+                <div class="main">決定</div>
+                <div class="en">OK</div>
+            </button>
+        </div>
+
+        <!-- 券種選択モーダル -->
+        <div class="ticket-modal-overlay" id="ticket-modal-overlay" style="display:none;">
+            <div class="ticket-modal">
+                <div class="ticket-modal-header">
+                    <div>
+                        <div class="ja">券種をお選びください。</div>
+                        <div class="en">Please choose the ticket type.</div>
+                    </div>
+                    <button class="ticket-modal-close" onclick="closeTicketModal()">✕</button>
+                </div>
+                <div class="ticket-modal-body">
+                    <div class="ticket-modal-grid">
+                        <button class="ticket-type-btn" onclick="selectTicketType('一般(18歳〜64歳)', 'Regular(ages 18-64)', 2200)">
+                            <div class="name">一般(18歳〜64歳)<br><span class="en">Regular(ages 18-64)</span></div>
+                            <div class="price">¥2200</div>
+                        </button>
+                        <button class="ticket-type-btn" onclick="selectTicketType('障がい者手帳割引※付き添い1名まで', 'Person with Disabilty Certificate', 1000)">
+                            <div class="name" style="font-size:16px;">障がい者手帳割引※付き添い1名まで<br><span class="en">Person with Disabilty<br>Certificate</span></div>
+                            <div class="price">¥1000</div>
+                        </button>
+                        <button class="ticket-type-btn" onclick="selectTicketType('大学生・専門学校生', 'University Student/Professional Training Colleges', 1600)">
+                            <div class="name">大学生・専門学校生<br><span class="en">University Student/<br>Professional Training Colleges</span></div>
+                            <div class="price">¥1600</div>
+                        </button>
+                        <button class="ticket-type-btn" onclick="selectTicketType('シニア(65歳以上)', 'Senior(ages Over 65)', 1300)">
+                            <div class="name">シニア(65歳以上)<br><span class="en">Senior(ages Over 65)</span></div>
+                            <div class="price">¥1300</div>
+                        </button>
+                        <button class="ticket-type-btn" onclick="selectTicketType('高校生', 'High School Student', 1100)">
+                            <div class="name">高校生<br><span class="en">High School Student</span></div>
+                            <div class="price">¥1100</div>
+                        </button>
+                        <button class="ticket-type-btn" onclick="selectTicketType('小人(3歳〜17歳)', 'Child(ages 3-17)', 1100)">
+                            <div class="name">小人(3歳〜17歳)<br><span class="en">Child(ages 3-17)</span></div>
+                            <div class="price">¥1100</div>
+                        </button>
+                    </div>
+                    <div class="ticket-modal-page">1/1<br><span>ページ</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. 内容確認画面 -->
+    <div id="screen-confirm" class="screen-container">
+        <!-- ロゴと時計 -->
+        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-clock">16:01</div>
+
+        <!-- プログレスナビゲーション -->
+        <div class="progress-nav">
+            <div class="progress-step">
+                <span class="ja">鑑賞日選択</span>
+                <span class="en">Choose the day</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">作品選択</span>
+                <span class="en">Choose the title</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">時間帯選択</span>
+                <span class="en">Choose the schedule</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">座席選択</span>
+                <span class="en">Choose the seat</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">券種選択</span>
+                <span class="en">Choose the tickets</span>
+            </div>
+            <div class="progress-step active">
+                <span class="ja">内容確認</span>
+                <span class="en">Confirm details</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">お支払い</span>
+                <span class="en">Payment</span>
+            </div>
+            <div class="progress-step">
+                <span class="ja">発券</span>
+                <span class="en">Ticket</span>
+            </div>
+        </div>
+
+        <!-- サイドナビゲーション -->
+        <div class="side-nav">
+            <div class="side-btn" onclick="navigate('screen-top')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="2" x2="8" y2="26" />
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">最初へ<br>戻る</div>
+                <div class="en">Top</div>
+            </div>
+            <div class="side-btn" onclick="navigate('screen-ticket')">
+                <div class="side-btn-icon">
+                    <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="38" y1="14" x2="8" y2="14" />
+                        <polyline points="20,2 8,14 20,26" />
+                    </svg>
+                </div>
+                <div class="side-btn-text">ひとつ<br>戻る</div>
+                <div class="en">Back</div>
+            </div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="confirm-header-area">
+            <div class="confirm-title-main">ご購入内容を確認してください。</div>
+            <div class="confirm-title-sub">Please confirm the contents you will purchase.</div>
+        </div>
+
+        <div class="confirm-content-box">
+            <!-- 作品名バー -->
+            <div class="confirm-movie-bar">
+                <div class="confirm-movie-title" id="confirm-movie-title">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
+                <div class="confirm-movie-en" id="confirm-movie-en">Made in Abyss</div>
+            </div>
+            
+            <div class="confirm-details-area">
+                <div class="confirm-details-label">購入内容：</div>
+                <table class="confirm-table">
+                    <!-- 上映時間 -->
+                    <tr class="confirm-row">
+                        <td class="confirm-th">
+                            <div class="ja">上映時間</div>
+                            <div class="en">Screen Time</div>
+                        </td>
+                        <td class="confirm-td" id="confirm-datetime">10月27日(火) 16:30〜17:55</td>
+                    </tr>
+                    <!-- シアター -->
+                    <tr class="confirm-row">
+                        <td class="confirm-th">
+                            <div class="ja">シアター</div>
+                            <div class="en">Theater</div>
+                        </td>
+                        <td class="confirm-td" id="confirm-theater">シアター11</td>
+                    </tr>
+                    <!-- 座席番号 -->
+                    <tr class="confirm-row">
+                        <td class="confirm-th">
+                            <div class="ja">座席番号</div>
+                            <div class="en">Seat Number</div>
+                        </td>
+                        <td class="confirm-td" id="confirm-seats">G-11</td>
+                    </tr>
+                    <!-- 購入枚数 -->
+                    <tr class="confirm-row">
+                        <td class="confirm-th">
+                            <div class="ja">購入枚数</div>
+                            <div class="en">Quantity</div>
+                        </td>
+                        <td class="confirm-td" id="confirm-quantity">1枚</td>
+                    </tr>
+                </table>
+                <div style="height: 20px;"></div>
+                <table class="confirm-table">
+                    <!-- お支払い -->
+                    <tr class="confirm-row total-row">
+                        <td class="confirm-th">
+                            <div class="ja">お支払い</div>
+                            <div class="en">Total Payment</div>
+                        </td>
+                        <td class="confirm-td confirm-total-td" id="confirm-total">￥ 1,600</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="confirm-message-area">
+            <div class="confirm-message-label">メッセージ</div>
+            <div class="confirm-message-text">
+                ご入場は上映開始時刻の約10分前を予定しております。<br>
+                各種サービス料金をご利用のお客様はご入場口にて証明書のご提示をお願いします。
+                <div class="en">Entrance will start at 10 minutes before the showtime. Please show the certificate at the entrance if requested.</div>
+            </div>
+        </div>
+
+        <!-- 右下アクションボタン（お支払いへ） -->
+        <button class="confirm-submit-btn" onclick="navigate('screen-payment')">
+            <div class="main">お支払いへ</div>
+            <div class="en">Payment</div>
+        </button>
+    </div>
+
+    <!-- 9. お支払い方法選択画面 -->
+    <div id="screen-payment" class="screen-container" style="background-color: #fff;">
+        <div class="screen-header">
+            <h2>お支払い方法を選択してください</h2>
+        </div>
+        <div class="content-area">
+            <button class="btn btn-block" onclick="navigate('screen-cash')">現金</button>
+            <button class="btn btn-block" onclick="alert('クレジットカード・電子決済処理へ遷移します')">クレジットカード・電子決済</button>
+        </div>
+        <div class="screen-footer">
+            <button class="btn btn-secondary" onclick="navigate('screen-confirm')">戻る</button>
+        </div>
+    </div>
+
+    <!-- 10. 現金支払い画面 -->
+    <div id="screen-cash" class="screen-container" style="background-color: #fff;">
+        <div class="screen-header">
+            <h2>現金支払い</h2>
+        </div>
+        <div class="content-area">
+            <p style="font-size: 32px; padding: 100px 0; font-weight: bold;">現金を投入してください</p>
+            <button class="btn btn-block" style="background-color: #198754;" onclick="completePurchase()">支払いを完了する（発券デモ）</button>
+        </div>
+        <div class="screen-footer">
+            <button class="btn btn-secondary" onclick="navigate('screen-payment')">お支払い方法選択へ戻る</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /**
+     * 【画面の自動スケール調整】
+     */
+    function adjustScale() {
+        const container = document.getElementById('app-container');
+        const scaleWidth = window.innerWidth / 1920;
+        const scaleHeight = window.innerHeight / 1080;
+        const scale = Math.min(scaleWidth, scaleHeight, 1);
+        container.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+    window.addEventListener('resize', adjustScale);
+
+    /**
+     * 【スクロール無効化処理】
+     */
+    document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+
+    /**
+     * 【グローバルステート】
+     */
+    const globalState = {
+        selectedDate: null,
+        selectedMovie: null,
+        selectedMovieEn: null,
+        selectedShowtime: null,
+        selectedSeats: [], // 最大5件まで格納
+        accountLinked: false,
+        ticketTypes: [],   // 選択した券種情報 { seat, nameJa, nameEn, price } を格納
+        totalAmount: 0,
+        paymentMethod: null
+    };
+
+    const localState = {
+        isTicketModalOpen: false,
+        currentTicketSeat: null,
+        isConfirmModalOpen: false
+    };
+
+    /**
+     * 【画面遷移処理】
+     */
+    function navigate(targetScreenId) {
+        const screens = document.querySelectorAll('.screen-container');
+        screens.forEach(screen => {
+            screen.style.display = 'none';
+        });
+
+        const targetScreen = document.getElementById(targetScreenId);
+        if (targetScreen) {
+            targetScreen.style.display = 'block';
+        } else {
+            console.error(`Screen with ID "${targetScreenId}" not found.`);
+        }
+    }
+
+    /**
+     * 【データ連携処理】鑑賞日の選択
+     */
+    function selectDate(dateType) {
+        globalState.selectedDate = dateType;
+        navigate('screen-movie');
+    }
+
+    /**
+     * 【データ連携処理】作品の選択
+     */
+    function selectMovie(movieTitle, movieEn) {
+        globalState.selectedMovie = movieTitle;
+        globalState.selectedMovieEn = movieEn;
+        
+        // 時間帯選択画面のタイトルを更新
+        document.getElementById('selected-movie-title').textContent = movieTitle;
+        document.getElementById('selected-movie-en').textContent = movieEn || '';
+
+        navigate('screen-showtime');
+    }
+
+    /**
+     * 【データ連携処理】上映時間帯の選択
+     */
+    function selectShowtime(theater, startTime, endTime) {
+        globalState.selectedShowtime = { theater, startTime, endTime };
+        navigate('screen-seat');
+    }
+
+    /**
+     * 【購入完了デモ処理】
+     */
+    function completePurchase() {
+        alert('発券が完了しました。\nご利用ありがとうございました。');
+        
+        // ステート初期化
+        globalState.selectedDate = null;
+        globalState.selectedMovie = null;
+        globalState.selectedMovieEn = null;
+        globalState.selectedShowtime = null;
+        globalState.selectedSeats = [];
+        globalState.accountLinked = false;
+        globalState.ticketTypes = [];
+        globalState.totalAmount = 0;
+        globalState.paymentMethod = null;
+        
+        localState.isTicketModalOpen = false;
+        localState.currentTicketSeat = null;
+        localState.isConfirmModalOpen = false;
+
+        // ページを初期状態に戻しておく
+        currentMoviePage = 1;
+        renderMoviePage();
+        resetSeats(); // 座席マップも初期化
+
+        navigate('screen-top');
+    }
+
+
+    /* =========================================================
+       === 作品リスト関連ロジック ===
+       ========================================================= */
+    const moviesData = [
+        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
+        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
+        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
+        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" },
+        { title: "【吹替】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "映画 ひつじのショーン かぼちゃ畑の怪物！", en: "Shaun the Sheep: The Beast of Mossy Bottom" },
+        { title: "【DolbyCinema・字幕】クジラに落ちた男", en: "Whalefall" },
+        { title: "バッド・ルーテナント：トウキョウ(PG12)", en: "Bad Lieutenant: Tokyo" },
+        { title: "【字幕】クジラに落ちた男", en: "Whalefall" },
+        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
+        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
+        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
+        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" },
+        { title: "【吹替】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "映画 ひつじのショーン かぼちゃ畑の怪物！", en: "Shaun the Sheep: The Beast of Mossy Bottom" },
+        { title: "【DolbyCinema・字幕】クジラに落ちた男", en: "Whalefall" },
+        { title: "バッド・ルーテナント：トウキョウ(PG12)", en: "Bad Lieutenant: Tokyo" },
+        { title: "【字幕】クジラに落ちた男", en: "Whalefall" },
+        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
+        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
+        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
+        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" },
+        { title: "【吹替】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "映画 ひつじのショーン かぼちゃ畑の怪物！", en: "Shaun the Sheep: The Beast of Mossy Bottom" },
+        { title: "【DolbyCinema・字幕】クジラに落ちた男", en: "Whalefall" },
+        { title: "バッド・ルーテナント：トウキョウ(PG12)", en: "Bad Lieutenant: Tokyo" },
+        { title: "【字幕】クジラに落ちた男", en: "Whalefall" },
+        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
+        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
+        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
+        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
+        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" }
+    ];
+
+    let currentMoviePage = 1;
+    const moviesPerPage = 10;
+
+    function renderMoviePage() {
+        const container = document.getElementById('movie-grid-container');
+        container.innerHTML = '';
+
+        const totalPages = Math.ceil(moviesData.length / moviesPerPage);
+        const startIndex = (currentMoviePage - 1) * moviesPerPage;
+        const endIndex = Math.min(startIndex + moviesPerPage, moviesData.length);
+
+        for (let i = startIndex; i < endIndex; i++) {
+            const movie = moviesData[i];
+            
+            const btn = document.createElement('button');
+            btn.className = 'movie-btn';
+            
+            btn.onclick = () => selectMovie(movie.title, movie.en);
+            
+            let htmlContent = `<div class="movie-btn-title">${movie.title}</div>`;
+            if (movie.en) {
+                htmlContent += `<div class="movie-btn-en">${movie.en}</div>`;
+            }
+            btn.innerHTML = htmlContent;
+            
+            container.appendChild(btn);
+        }
+
+        document.getElementById('movie-total-count').textContent = moviesData.length;
+        document.getElementById('movie-page-current').textContent = currentMoviePage;
+        document.getElementById('movie-page-total').textContent = '/' + totalPages;
+
+        const nextBtn = document.getElementById('movie-next-btn');
+        const prevBtn = document.getElementById('movie-prev-btn');
+
+        nextBtn.style.display = (currentMoviePage < totalPages) ? 'flex' : 'none';
+        prevBtn.style.display = (currentMoviePage > 1) ? 'flex' : 'none';
+    }
+
+    function nextMoviePage() {
+        const totalPages = Math.ceil(moviesData.length / moviesPerPage);
+        if (currentMoviePage < totalPages) {
+            currentMoviePage++;
+            renderMoviePage();
+        }
+    }
+
+    function prevMoviePage() {
+        if (currentMoviePage > 1) {
+            currentMoviePage--;
+            renderMoviePage();
+        }
+    }
+
+    /* =========================================================
+       === 座席選択関連ロジック ===
+       ========================================================= */
+
+    const seatRows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    const seatMapData = [];
+    seatRows.forEach((row) => {
+        for (let col = 1; col <= 18; col++) {
+            let isSeat = false;
+            let type = 'normal';
+            let status = 'vacant';
+
+            if (row === 'A') {
+                if (col >= 8 && col <= 15) isSeat = true;
+                if (col === 7 || col === 16) { isSeat = true; type = 'wheelchair'; }
+            } else if (['B', 'C', 'D', 'E', 'F'].includes(row)) {
+                if (col >= 6 && col <= 17) isSeat = true;
+            } else if (row === 'G') {
+                if (col >= 1 && col <= 3) isSeat = true;
+                if (col >= 6 && col <= 17) isSeat = true;
+            } else if (row === 'H') {
+                if (col >= 1 && col <= 5) isSeat = true;
+                if (col >= 6 && col <= 18) isSeat = true;
+            }
+
+            if (isSeat) {
+                if (row === 'D' && (col === 6 || col === 11)) status = 'reserved';
+                if (row === 'E' && (col === 6 || col === 11)) status = 'reserved';
+                if (row === 'F' && (col === 9 || col === 10)) status = 'reserved';
+                if (row === 'H' && col === 11) status = 'reserved';
+                
+                seatMapData.push({ id: `${row}-${col}`, row, col, type, status });
+            }
+        }
+    });
+
+    function renderSeatMap() {
+        const grid = document.getElementById('seat-grid');
+        // grid 内の矢印等の HTML を保持したまま座席部分だけ再描画するため、
+        // innerHTML で初期化せず、seat-btn-cell と seat-row-label を個別に削除します。
+        const oldElements = grid.querySelectorAll('.seat-btn-cell, .seat-row-label');
+        oldElements.forEach(el => el.remove());
+
+        seatRows.forEach((row, rowIndex) => {
+            const leftLabel = document.createElement('div');
+            leftLabel.className = 'seat-row-label';
+            leftLabel.style.gridColumn = 1;
+            leftLabel.style.gridRow = rowIndex + 1;
+            leftLabel.textContent = row;
+            grid.appendChild(leftLabel);
+
+            const rowSeats = seatMapData.filter(s => s.row === row);
+            rowSeats.forEach(seat => {
+                const btn = document.createElement('div');
+                btn.className = `seat-btn-cell ${seat.type} ${seat.status}`;
+                btn.style.gridColumn = seat.col + 2; 
+                btn.style.gridRow = rowIndex + 1;
+                btn.dataset.id = seat.id;
+
+                // --- 変更箇所: A列の端の座席を二席分の長方形にする (拡大調整・gap調整後) ---
+                if (seat.row === 'A' && seat.col === 7) {
+                    btn.style.gridColumn = `${seat.col + 1} / span 2`; 
+                    btn.style.width = '104px'; // 48px + column-gap(8px) + 48px = 104px
+                } else if (seat.row === 'A' && seat.col === 16) {
+                    btn.style.gridColumn = `${seat.col + 2} / span 2`;
+                    btn.style.width = '104px';
+                }
+                // --------------------------------------------------
+
+                if (seat.status === 'reserved') {
+                    btn.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+                } else if (seat.status === 'notsale') {
+                    btn.textContent = '✖';
+                } else if (seat.type === 'wheelchair') {
+                    btn.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b13324" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="2"/><path d="M9 7v7h5v5"/><path d="M18 19a6 6 0 1 1-9-4"/></svg>`;
+                } else {
+                    btn.textContent = seat.col;
+                }
+
+                btn.onclick = () => toggleSeat(seat, btn);
+                grid.appendChild(btn);
+            });
+
+            const rightLabel = document.createElement('div');
+            rightLabel.className = 'seat-row-label';
+            rightLabel.style.gridColumn = 21;
+            rightLabel.style.gridRow = rowIndex + 1;
+            rightLabel.textContent = row;
+            grid.appendChild(rightLabel);
+        });
+    }
+
+    function toggleSeat(seat, btnElement) {
+        if (seat.status === 'reserved' || seat.status === 'notsale') return;
+
+        const idx = globalState.selectedSeats.indexOf(seat.id);
+        if (idx > -1) {
+            globalState.selectedSeats.splice(idx, 1);
+            btnElement.classList.remove('selected');
+        } else {
+            if (globalState.selectedSeats.length >= 5) return;
+            globalState.selectedSeats.push(seat.id);
+            btnElement.classList.add('selected');
+        }
+        updateSeatFooterUI();
+    }
+
+    function updateSeatFooterUI() {
+        const wrappers = document.querySelectorAll('.seat-slot-wrapper');
+        
+        wrappers.forEach((wrapper, i) => {
+            const box = wrapper.querySelector('.seat-slot-box');
+            const text = wrapper.querySelector('.seat-slot-text');
+            
+            if (i < globalState.selectedSeats.length) {
+                text.textContent = globalState.selectedSeats[i];
+                box.classList.add('filled');
+            } else {
+                text.textContent = '';
+                box.classList.remove('filled');
+            }
+        });
+
+        const resetBtn = document.getElementById('seat-reset-btn');
+        const submitBtn = document.getElementById('seat-submit-btn');
+
+        if (globalState.selectedSeats.length > 0) {
+            resetBtn.classList.add('active');
+            submitBtn.classList.add('active');
+        } else {
+            resetBtn.classList.remove('active');
+            submitBtn.classList.remove('active');
+        }
+    }
+
+    function resetSeats() {
+        if (globalState.selectedSeats.length === 0) return;
+        globalState.selectedSeats = [];
+        
+        const allSelected = document.querySelectorAll('.seat-btn-cell.selected');
+        allSelected.forEach(el => el.classList.remove('selected'));
+        
+        updateSeatFooterUI();
+    }
+
+    function confirmSeats() {
+        if (globalState.selectedSeats.length > 0) {
+            navigate('screen-account');
+        }
+    }
+
+    /* =========================================================
+       === 券種選択画面 (screen-ticket) 関連ロジック ===
+       ========================================================= */
+
+    /**
+     * 券種選択画面を初期化し、動的な情報をセットする
+     */
+    function initTicketScreen() {
+        // ヘッダー情報セット
+        document.getElementById('ticket-movie-name').textContent = globalState.selectedMovie || '劇場シリーズ【第一部】メイドインアビス 目覚める神秘';
+        document.getElementById('ticket-movie-en').textContent = globalState.selectedMovieEn || 'Made in Abyss';
+        
+        if (globalState.selectedShowtime) {
+            document.getElementById('ticket-date-text').textContent = '10月27日(火)'; // デモ用固定
+            document.getElementById('ticket-time-text').textContent = `${globalState.selectedShowtime.startTime} 〜 ${globalState.selectedShowtime.endTime}`;
+            document.getElementById('ticket-theater-text').textContent = globalState.selectedShowtime.theater;
+        }
+
+        renderTicketList();
+    }
+
+    /**
+     * 座席ごとの券種選択リストを描画・更新する
+     */
+    function renderTicketList() {
+        const listContainer = document.getElementById('ticket-seat-list');
+        listContainer.innerHTML = '';
+        
+        let selectedCount = 0;
+        let totalPrice = 0;
+
+        globalState.selectedSeats.forEach(seatId => {
+            const ticketTypeInfo = globalState.ticketTypes.find(t => t.seat === seatId);
+            
+            const item = document.createElement('div');
+            item.className = 'ticket-seat-item';
+            
+            const labelHtml = `
+                <div class="ticket-seat-label">
+                    <div class="ticket-seat-box"></div>
+                    <div class="ticket-seat-id">${seatId}</div>
+                </div>
+            `;
+            
+            let btnHtml = '';
+            if (ticketTypeInfo) {
+                // 選択済み状態
+                selectedCount++;
+                totalPrice += ticketTypeInfo.price;
+                btnHtml = `
+                    <button class="ticket-selected-btn" onclick="openTicketModal('${seatId}')">
+                        <div class="ticket-selected-info">
+                            <div class="ticket-selected-name">${ticketTypeInfo.nameJa}</div>
+                            <div class="ticket-selected-en">${ticketTypeInfo.nameEn}</div>
+                        </div>
+                        <div class="ticket-selected-price">¥${ticketTypeInfo.price.toLocaleString()}</div>
+                    </button>
+                `;
+            } else {
+                // 未選択状態
+                btnHtml = `
+                    <button class="ticket-select-btn" onclick="openTicketModal('${seatId}')">
+                        <div class="ticket-select-main">券種を選択してください</div>
+                        <div class="ticket-select-sub">Please choose the tickets</div>
+                    </button>
+                `;
+            }
+            
+            item.innerHTML = labelHtml + btnHtml;
+            listContainer.appendChild(item);
+        });
+
+        // 画面右上の枚数・金額表示を更新
+        const totalSeats = globalState.selectedSeats.length;
+        document.getElementById('ticket-count-text').textContent = `${selectedCount} / ${totalSeats}枚`;
+        
+        if (selectedCount > 0) {
+            document.getElementById('ticket-price-text').textContent = `¥${totalPrice.toLocaleString()}`;
+        } else {
+            document.getElementById('ticket-price-text').textContent = `-- , ---`;
+        }
+        
+        globalState.totalAmount = totalPrice;
+
+        // ガイドメッセージと決定ボタンの表示制御
+        const guide = document.getElementById('ticket-guide');
+        const submitBtn = document.getElementById('ticket-submit-btn');
+        
+        if (totalSeats > 0 && selectedCount === totalSeats) {
+            guide.style.display = 'none';
+            submitBtn.style.display = 'flex';
+        } else {
+            guide.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    /**
+     * 券種選択モーダルを表示する
+     */
+    function openTicketModal(seatId) {
+        localState.currentTicketSeat = seatId;
+        localState.isTicketModalOpen = true;
+        document.getElementById('ticket-modal-overlay').style.display = 'flex';
+    }
+
+    /**
+     * 券種選択モーダルを閉じる
+     */
+    function closeTicketModal() {
+        localState.isTicketModalOpen = false;
+        localState.currentTicketSeat = null;
+        document.getElementById('ticket-modal-overlay').style.display = 'none';
+    }
+
+    /**
+     * モーダル内で券種を選択した際の処理
+     */
+    function selectTicketType(nameJa, nameEn, price) {
+        const seatId = localState.currentTicketSeat;
+        if (!seatId) return;
+
+        const existingIndex = globalState.ticketTypes.findIndex(t => t.seat === seatId);
+        if (existingIndex > -1) {
+            // 既に選択されていた場合は更新
+            globalState.ticketTypes[existingIndex] = { seat: seatId, nameJa, nameEn, price };
+        } else {
+            // 新規追加
+            globalState.ticketTypes.push({ seat: seatId, nameJa, nameEn, price });
+        }
+
+        closeTicketModal();
+        renderTicketList(); // リスト表示の再描画
+    }
+
+    /* =========================================================
+       === 内容確認画面 (screen-confirm) 関連ロジック ===
+       ========================================================= */
+       
+    /**
+     * 内容確認画面の情報をグローバルステートから展開する
+     */
+    function initConfirmScreen() {
+        // 料金計算
+        let total = 0;
+        globalState.ticketTypes.forEach(t => {
+            total += t.price;
+        });
+        globalState.totalAmount = total;
+
+        // ヘッダー（作品情報）
+        document.getElementById('confirm-movie-title').textContent = globalState.selectedMovie || '';
+        document.getElementById('confirm-movie-en').textContent = globalState.selectedMovieEn || '';
+        
+        // 日付・時間・シアター
+        if (globalState.selectedShowtime) {
+            // デモ用の固定日付と、動的な時間を組み合わせる
+            document.getElementById('confirm-datetime').innerHTML = `10月27日(火)&nbsp;&nbsp;${globalState.selectedShowtime.startTime}〜${globalState.selectedShowtime.endTime}`;
+            document.getElementById('confirm-theater').textContent = globalState.selectedShowtime.theater;
+        }
+
+        // 座席番号
+        document.getElementById('confirm-seats').textContent = globalState.selectedSeats.join(', ');
+        
+        // 購入枚数
+        document.getElementById('confirm-quantity').textContent = `${globalState.selectedSeats.length}枚`;
+        
+        // お支払い金額
+        document.getElementById('confirm-total').textContent = `￥ ${globalState.totalAmount.toLocaleString()}`;
+    }
+
+    // 初回読み込み時の初期化処理
+    document.addEventListener('DOMContentLoaded', () => {
+        adjustScale();
+        renderMoviePage();
+        renderSeatMap();
+    });
+</script>
+</body>
+</html>
