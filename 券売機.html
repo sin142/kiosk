@@ -748,26 +748,20 @@
             border-color: #b13324;
         }
 
+        /* 選択中の座席を表示するセクションを示す長方形の囲い（右下に配置） */
         .seat-footer-bar {
             position: absolute;
             bottom: 20px;
-            left: 170px;
             right: 40px;
             height: 140px;
             background-color: #c4c8c1;
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 30px;
             box-sizing: border-box;
-            gap: 30px;
-        }
-
-        .seat-mini-map {
-            width: 140px;
-            height: 80px;
-            border: 3px solid #4CAF50;
-            background-color: #fff;
-            position: relative;
+            gap: 40px;
+            border-radius: 8px;
+            border: 2px solid #a0a0a0;
         }
 
         .seat-selected-info {
@@ -1894,21 +1888,8 @@
             </div>
         </div>
 
-        <!-- 下部フッターバー -->
+        <!-- 下部フッターバー（ミニマップを削除し、右下の囲いとして調整） -->
         <div class="seat-footer-bar">
-            <!-- ミニマップ（装飾用ダミー） -->
-            <div class="seat-mini-map">
-                <div style="position: absolute; top: 10px; left: 10%; width: 80%; height: 5px; background: #ccc;"></div>
-                <div style="position: absolute; top: 30px; left: 10%; width: 80%; height: 40px; background: #eee; display: flex; flex-wrap: wrap; gap: 2px;">
-                    <!-- 小さい点（座席の模倣） -->
-                    <script>
-                        for(let i=0; i<30; i++) {
-                            document.write('<div style="width: 4px; height: 4px; background: #ccc; margin: 1px;"></div>');
-                        }
-                    </script>
-                </div>
-            </div>
-
             <div class="seat-selected-info">
                 <div class="seat-selected-title">選択中の座席（最大5席）<br><span class="en" style="font-size:14px;color:#777;">selected seats(Max 5)</span></div>
                 <div class="seat-selected-slots">
