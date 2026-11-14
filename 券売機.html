@@ -1002,6 +1002,7 @@
             font-weight: bold;
         }
 
+        /* ＝＝＝ 修正：中央の吹き出しも枠線ありの2段重ねに統一 ＝＝＝ */
         .ticket-guide {
             background-color: rgba(255,255,255,0.8);
             border: 1px solid #ccc;
@@ -1014,12 +1015,23 @@
             top: 0;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+        /* 枠線用の三角形 */
         .ticket-guide::before {
             content: "";
             position: absolute;
             top: 30px;
-            left: -20px;
-            border-width: 10px 20px 10px 0;
+            left: -21px; /* 1px外側へ */
+            border-width: 10px 21px 10px 0;
+            border-style: solid;
+            border-color: transparent #ccc transparent transparent;
+        }
+        /* 背景塗りつぶし用の三角形 */
+        .ticket-guide::after {
+            content: "";
+            position: absolute;
+            top: 31px;
+            left: -19px; /* 本体に1px重ねて枠線を消す */
+            border-width: 9px 20px 9px 0;
             border-style: solid;
             border-color: transparent rgba(255,255,255,0.8) transparent transparent;
         }
@@ -1031,6 +1043,68 @@
             display: flex;
             align-items: flex-end;
             gap: 10px;
+        }
+
+        /* ムビチケ用吹き出しスタイル（右下） */
+        .ticket-guide-text {
+            background-color: rgba(255,255,255,0.8);
+            border: 1px solid #ccc;
+            padding: 15px;
+            font-size: 18px;
+            color: #333;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-right: 25px;
+            margin-bottom: 0;
+            line-height: 1.4;
+        }
+        /* 枠線用の三角形 */
+        .ticket-guide-text::before {
+            content: "";
+            position: absolute;
+            bottom: 25px;
+            right: -21px;
+            border-width: 10px 0 10px 21px;
+            border-style: solid;
+            border-color: transparent transparent transparent #ccc;
+        }
+        /* 背景塗りつぶし用の三角形 */
+        .ticket-guide-text::after {
+            content: "";
+            position: absolute;
+            bottom: 26px;
+            right: -19px;
+            border-width: 9px 0 9px 20px;
+            border-style: solid;
+            border-color: transparent transparent transparent rgba(255,255,255,0.8);
+        }
+
+        .ticket-blue-btn {
+            background: linear-gradient(to bottom, #00aced, #007bb5);
+            border: 1px solid #005a87;
+            border-radius: 6px;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            width: 220px;
+            height: 70px;
+            transition: transform 0.1s;
+        }
+        .ticket-blue-btn:active {
+            transform: scale(0.98);
+        }
+        .ticket-blue-btn .main {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .ticket-blue-btn .en {
+            font-size: 12px;
         }
 
         .ticket-submit-btn {
@@ -2022,6 +2096,15 @@
 
         <!-- 右下アクションボタン群 -->
         <div class="ticket-bottom-actions">
+            <div class="ticket-guide-text">ムビチケ、シネマチケット<br>をご利用のお客様は、<br>こちらをタッチしてください。</div>
+            <button class="ticket-blue-btn">
+                <div class="main">ムビチケ</div>
+                <div class="en">Use Movi-tike</div>
+            </button>
+            <button class="ticket-blue-btn">
+                <div class="main">シネマチケット</div>
+                <div class="en">Use Cinema Ticket</div>
+            </button>
             <!-- 全席選択後に表示される決定ボタン（内容確認画面へ遷移） -->
             <button id="ticket-submit-btn" class="ticket-submit-btn" onclick="initConfirmScreen(); navigate('screen-confirm')" style="display:none;">
                 <div class="main">決定</div>
