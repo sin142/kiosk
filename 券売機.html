@@ -367,7 +367,7 @@
             margin-bottom: 5px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
-            line-clamp: 2; /* 互換性のため追加 */
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -661,7 +661,7 @@
             color: #777;
         }
 
-        /* スクリーンや座席を含むラッパー。上部の余白を削って上に寄せました */
+        /* スクリーンや座席を含むラッパー */
         .seat-map-wrapper {
             flex: 1;
             background-color: #d8dad3;
@@ -670,7 +670,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px; /* 40 -> 20 に減らして全体を上に寄せる */
+            padding-top: 20px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
 
@@ -685,20 +685,21 @@
             font-size: 22px;
             font-weight: bold;
             letter-spacing: 2px;
-            margin-bottom: 10px; /* 20 -> 10 に詰める */
+            margin-bottom: 10px;
             border-radius: 4px;
         }
 
-        /* 全体拡大のためのグリッド再設計 */
+        /* グリッドを20カラムに修正 (G,Hラベルと1〜5番座席は列間隔を空けずに配置) */
         .seat-grid {
             display: grid;
-            grid-template-columns: 60px 40px repeat(18, 48px) 60px; /* アルファベットと座席の間に矢印用の列を追加 */
-            row-gap: 22px; /* 列同士の間隔（縦）を維持 */
-            column-gap: 8px; /* 列内の座席の間隔（横）を詰める */
+            grid-template-columns: 50px repeat(18, 48px) 50px; 
+            row-gap: 22px;
+            column-gap: 8px;
             justify-items: center;
             align-items: center;
-            /* 余計なmargin-topを削除し、下部余白を自動で埋めて上寄りに */
             margin-bottom: auto;
+            position: relative;
+            width: 95%;
         }
 
         .seat-row-label {
@@ -1870,7 +1871,7 @@
 
             <!-- 中央マップエリア -->
             <div class="seat-map-wrapper">
-                <!-- 非常口アイコン（走る人のアイコンに変更・拡大） -->
+                <!-- 非常口アイコン -->
                 <div style="position: absolute; top: 25px; right: 50px; width: 60px; height: 60px; border: 4px solid #4CAF50; display: flex; align-items: center; justify-content: center;">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="#4CAF50">
                         <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 6.7 1.4z"/>
@@ -1879,18 +1880,13 @@
                     <div style="position: absolute; bottom: -36px; font-size: 12px; color: #4CAF50;">EXIT</div>
                 </div>
 
-                <!-- スクリーンのバー（拡大） -->
+                <!-- スクリーンのバー -->
                 <div class="screen-bar">スクリーン (Screen)</div>
-                <!-- 上向き矢印（拡大） -->
-                <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 25px solid #a0a0a0; margin-bottom: 15px;"></div>
+                <!-- 上向き矢印（中央上） -->
+                <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 25px solid #a0a0a0;  margin-bottom: 15px;"></div>
 
-                <!-- 座席グリッド（拡大） -->
-                <div style="position: relative; margin-top: 10px;">
-                    <!-- 縦の矢印（アルファベット列と座席列の間） -->
-                    <div style="position: absolute; left: 85px; top: -30px; width: 6px; height: calc(100% + 60px); background: #666;">
-                        <div style="position: absolute; top: -20px; left: -12px; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 20px solid #666;"></div>
-                        <div style="position: absolute; bottom: 0; left: -12px; width: 30px; height: 6px; background: #666;"></div>
-                    </div>
+                <div style="position: relative; margin-top: 10px; margin-left: 345px; width: 95%;">
+                    <!-- 座席グリッド（拡大） -->
                     <div id="seat-grid" class="seat-grid">
                         <!-- JavaScriptで動的に生成 -->
                     </div>
@@ -1937,7 +1933,6 @@
             <h2>会員アカウント連携</h2>
         </div>
         <div class="content-area">
-            <!-- 次へ進む際に initTicketScreen() を実行して券種選択画面を描画 -->
             <button class="btn btn-block" onclick="initTicketScreen(); navigate('screen-ticket')">会員証（QRコード）を読み取る</button>
             <button class="btn btn-block btn-secondary" onclick="initTicketScreen(); navigate('screen-ticket')">連携せずに次へ進む</button>
         </div>
@@ -2511,10 +2506,11 @@
             }
 
             if (isSeat) {
+                // 画像に合わせて予約済みの座席を設定
                 if (row === 'D' && (col === 6 || col === 11)) status = 'reserved';
-                if (row === 'E' && (col === 6 || col === 11)) status = 'reserved';
+                if (row === 'E' && col === 10) status = 'reserved'; 
                 if (row === 'F' && (col === 9 || col === 10)) status = 'reserved';
-                if (row === 'H' && col === 11) status = 'reserved';
+                if (row === 'H' && col === 10) status = 'reserved';
                 
                 seatMapData.push({ id: `${row}-${col}`, row, col, type, status });
             }
@@ -2523,36 +2519,93 @@
 
     function renderSeatMap() {
         const grid = document.getElementById('seat-grid');
-        // grid 内の矢印等の HTML を保持したまま座席部分だけ再描画するため、
-        // innerHTML で初期化せず、seat-btn-cell と seat-row-label を個別に削除します。
-        const oldElements = grid.querySelectorAll('.seat-btn-cell, .seat-row-label');
-        oldElements.forEach(el => el.remove());
+        grid.innerHTML = '';
 
+        // 入口方向を示す大きな上向き矢印をA〜F列の空きスペース（col2〜col6）に描画
+        const arrowContainer = document.createElement('div');
+        arrowContainer.style.gridColumn = '2 / 6'; // 座席1〜5のエリアの幅を調整
+        arrowContainer.style.gridRow = '1 / 7';    // A〜F列のエリア
+        arrowContainer.style.width = '100%';
+        arrowContainer.style.height = '100%';
+        arrowContainer.style.position = 'relative';
+
+        const arrowLine = document.createElement('div');
+        arrowLine.style.position = 'absolute';
+        arrowLine.style.left = '45%'; // G列の[2]番と[3]番の間付近に微調整
+        arrowLine.style.transform = 'translateX(-50%)';
+        arrowLine.style.bottom = '10px'; 
+        arrowLine.style.width = '8px';
+        arrowLine.style.top = '20px'; 
+        arrowLine.style.backgroundColor = '#666';
+
+        const arrowHead = document.createElement('div');
+        arrowHead.style.position = 'absolute';
+        arrowHead.style.top = '-25px';
+        arrowHead.style.left = '50%';
+        arrowHead.style.transform = 'translateX(-50%)';
+        arrowHead.style.width = '0';
+        arrowHead.style.height = '0';
+        arrowHead.style.borderLeft = '20px solid transparent';
+        arrowHead.style.borderRight = '20px solid transparent';
+        arrowHead.style.borderBottom = '25px solid #666';
+
+        const arrowBase = document.createElement('div');
+        arrowBase.style.position = 'absolute';
+        arrowBase.style.bottom = '0';
+        arrowBase.style.left = '50%';
+        arrowBase.style.transform = 'translateX(-50%)';
+        arrowBase.style.width = '40px';
+        arrowBase.style.height = '8px';
+        arrowBase.style.backgroundColor = '#666';
+
+        arrowLine.appendChild(arrowHead);
+        arrowLine.appendChild(arrowBase);
+        arrowContainer.appendChild(arrowLine);
+        grid.appendChild(arrowContainer);
+
+        // 座席とアルファベットの配置
         seatRows.forEach((row, rowIndex) => {
+            // 左側のアルファベットラベル (A〜F列は 矢印の右側 col 6 に配置、G,H列は左端 col 1 に配置)
             const leftLabel = document.createElement('div');
             leftLabel.className = 'seat-row-label';
-            leftLabel.style.gridColumn = 1;
+            if (['A', 'B', 'C', 'D', 'E', 'F'].includes(row)) {
+                leftLabel.style.gridColumn = 6;
+            } else {
+                leftLabel.style.gridColumn = 1;
+            }
             leftLabel.style.gridRow = rowIndex + 1;
             leftLabel.textContent = row;
             grid.appendChild(leftLabel);
 
+            // 座席の配置
             const rowSeats = seatMapData.filter(s => s.row === row);
             rowSeats.forEach(seat => {
                 const btn = document.createElement('div');
                 btn.className = `seat-btn-cell ${seat.type} ${seat.status}`;
-                btn.style.gridColumn = seat.col + 2; 
+                
+                // G, H 列の 1〜5番はそのまま 2〜6 列目に配置
+                // すべての列の 6番以降は 7 列目以降に配置
+                let targetCol;
+                if (seat.col <= 5) {
+                    targetCol = seat.col + 1;
+                } else {
+                    targetCol = seat.col + 1; // H列5番(col:6) と H列6番(col:7) が連続するよう、そのままインデックス+1を使用
+                }
+
+                btn.style.gridColumn = targetCol;
                 btn.style.gridRow = rowIndex + 1;
                 btn.dataset.id = seat.id;
 
-                // --- 変更箇所: A列の端の座席を二席分の長方形にする (拡大調整・gap調整後) ---
-                if (seat.row === 'A' && seat.col === 7) {
-                    btn.style.gridColumn = `${seat.col + 1} / span 2`; 
-                    btn.style.width = '104px'; // 48px + column-gap(8px) + 48px = 104px
-                } else if (seat.row === 'A' && seat.col === 16) {
-                    btn.style.gridColumn = `${seat.col + 2} / span 2`;
-                    btn.style.width = '104px';
+                // A列の車椅子マークを2列分に拡張
+                if (seat.row === 'A' && seat.type === 'wheelchair') {
+                    if (seat.col === 7) {
+                        btn.style.gridColumn = `7 / span 2`; // A列7番の車椅子席を正しく配置
+                        btn.style.width = '104px'; // 48px + column-gap(8px) + 48px = 104px
+                    } else if (seat.col === 16) {
+                        btn.style.gridColumn = `17 / span 2`;
+                        btn.style.width = '104px';
+                    }
                 }
-                // --------------------------------------------------
 
                 if (seat.status === 'reserved') {
                     btn.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
@@ -2568,9 +2621,10 @@
                 grid.appendChild(btn);
             });
 
+            // 右側のアルファベットラベル
             const rightLabel = document.createElement('div');
             rightLabel.className = 'seat-row-label';
-            rightLabel.style.gridColumn = 21;
+            rightLabel.style.gridColumn = 20; // grid-template-columns の末尾に合わせる
             rightLabel.style.gridRow = rowIndex + 1;
             rightLabel.textContent = row;
             grid.appendChild(rightLabel);
