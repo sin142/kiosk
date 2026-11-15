@@ -114,7 +114,14 @@
             box-sizing: border-box;
             position: relative; /* 内部要素の絶対配置用 */
             margin-bottom: 20px;
+            padding-top: 15px; /* 上部に余白を追加して、中の要素が背景内にあるように見せる */
         }
+
+        /* 作品選択画面専用のラッパー（高さを広げる） */
+        #screen-movie .content-wrapper-bg {
+            height: 880px;
+        }
+
 
         /* --- スタート画面専用スタイル --- */
         .start-text {
@@ -342,7 +349,7 @@
         .movie-header-area {
             margin-top: 60px;
             margin-left: 170px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .movie-title-main {
             font-size: 38px;
@@ -355,15 +362,14 @@
             color: #555;
         }
         .movie-date-box {
-            margin-left: 170px;
-            width: calc(100% - 220px);
-            background-color: #f7ede1;
-            border: 2px solid #dcbfa2;
-            padding: 10px 20px;
+            width: calc(100% - 30px); /* 左右の余白を考慮 */
+            margin: 0 auto; /* 中央揃え */
+            background-color: #ffffff; /* 白背景 */
+            border-bottom: 1px solid #dcbfa2;
+            padding: 12px 20px;
             font-size: 32px;
             color: #333;
             box-sizing: border-box;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
         }
         .movie-count-area {
             text-align: right;
@@ -379,12 +385,13 @@
             margin: 0 5px;
         }
         .movie-grid {
-            margin-left: 170px;
-            width: calc(100% - 220px);
+            width: 100%;
+            padding: 0 30px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-top: 10px;
+            margin-bottom: 120px; /* ★ここを追加！ページネーションと重ならないよう余白を設ける */
             box-sizing: border-box;
         }
         .movie-btn {
@@ -428,11 +435,13 @@
         
         .movie-pagination-area {
             position: absolute;
-            bottom: 30px;
-            right: 50px;
+            bottom: 25px; /* 位置をさらに下に調整 */
+            right: 40px;
             display: flex;
             align-items: center;
             gap: 25px;
+            width: auto;
+            justify-content: flex-end;
         }
         .movie-page-text {
             display: flex;
@@ -463,24 +472,24 @@
             border: none;
             border-radius: 6px;
             color: white;
-            padding: 12px 40px;
-            font-size: 26px;
+            padding: 8px 30px; /* サイズ調整 */
+            font-size: 22px; /* サイズ調整 */
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 220px;
+            width: 180px; /* サイズ調整 */
             transition: transform 0.1s;
         }
         .movie-nav-btn:active {
             transform: scale(0.98);
         }
         .movie-nav-btn .en {
-            font-size: 14px;
+            font-size: 12px; /* サイズ調整 */
             font-weight: normal;
-            margin-top: 5px;
+            margin-top: 3px; /* マージン調整 */
         }
         .movie-next-btn {
             background: linear-gradient(to bottom, #d63321, #c12b1a);
@@ -507,7 +516,8 @@
         }
         
         .showtime-movie-box {
-            width: 100%;
+            width: calc(100% - 30px); /* 左右の余白を考慮 */
+            margin: 0 auto; /* 中央揃え */
             padding: 12px 20px;
             box-sizing: border-box;
             background-color: #f7ede1;
@@ -527,7 +537,8 @@
         }
 
         .showtime-date-row {
-            width: 100%;
+            width: calc(100% - 30px); /* 左右の余白を考慮 */
+            margin: 0 auto; /* 中央揃え */
             display: flex;
             box-sizing: border-box;
             background-color: #dedede;
@@ -927,7 +938,8 @@
         }
 
         .ticket-movie-bar {
-            width: 100%;
+            width: calc(100% - 30px); /* 左右の余白を考慮 */
+            margin: 0 auto; /* 中央揃え */
             background-color: #f7ede1;
             border-top: 1px solid #dcbfa2;
             border-bottom: 1px solid #dcbfa2;
@@ -944,7 +956,8 @@
         }
 
         .ticket-info-bar {
-            width: 100%;
+            width: calc(100% - 30px); /* 左右の余白を考慮 */
+            margin: 0 auto; /* 中央揃え */
             display: flex;
             background-color: #dedede;
             border-bottom: 1px solid #bbb;
@@ -1801,40 +1814,43 @@
             <div class="movie-title-sub">Please select a movie.</div>
         </div>
 
-        <div class="movie-date-box">
-            本日の上映
-        </div>
-
-        <div class="movie-count-area">
-            上映作品数： <span id="movie-total-count" class="movie-count-num">0</span> 作品
-        </div>
-
-        <!-- JavaScriptで動的に要素が追加されるコンテナ -->
-        <div id="movie-grid-container" class="movie-grid">
-            <!-- ムービーボタンがここに挿入されます -->
-        </div>
-
-        <!-- ページネーションエリア -->
-        <div class="movie-pagination-area">
-            <!-- 前へボタン（JSで表示制御） -->
-            <button id="movie-prev-btn" class="movie-nav-btn movie-prev-btn" onclick="prevMoviePage()" style="display: none;">
-                前の作品へ
-                <span class="en">Prev movie</span>
-            </button>
-
-            <!-- ページ番号 -->
-            <div class="movie-page-text">
-                <div class="movie-page-nums">
-                    <span id="movie-page-current" class="movie-page-current">1</span><span id="movie-page-total" class="movie-page-total">/1</span>
-                </div>
-                <span class="movie-page-label">ページ</span>
+        <!-- コンテンツ領域を薄い赤の長方形で囲う -->
+        <div class="content-wrapper-bg">
+            <div class="movie-date-box">
+                本日の上映
             </div>
 
-            <!-- 次へボタン（JSで表示制御） -->
-            <button id="movie-next-btn" class="movie-nav-btn movie-next-btn" onclick="nextMoviePage()">
-                次の作品へ
-                <span class="en">Next movie</span>
-            </button>
+            <div class="movie-count-area">
+                上映作品数： <span id="movie-total-count" class="movie-count-num">0</span> 作品
+            </div>
+
+            <!-- JavaScriptで動的に要素が追加されるコンテナ -->
+            <div id="movie-grid-container" class="movie-grid">
+                <!-- ムービーボタンがここに挿入されます -->
+            </div>
+
+            <!-- ページネーションエリア -->
+            <div class="movie-pagination-area">
+                <!-- 前へボタン（JSで表示制御） -->
+                <button id="movie-prev-btn" class="movie-nav-btn movie-prev-btn" onclick="prevMoviePage()" style="display: none;">
+                    前の作品へ
+                    <span class="en">Prev movie</span>
+                </button>
+
+                <!-- ページ番号 -->
+                <div class="movie-page-text">
+                    <div class="movie-page-nums">
+                        <span id="movie-page-current" class="movie-page-current">1</span><span id="movie-page-total" class="movie-page-total">/1</span>
+                    </div>
+                    <span class="movie-page-label">ページ</span>
+                </div>
+
+                <!-- 次へボタン（JSで表示制御） -->
+                <button id="movie-next-btn" class="movie-nav-btn movie-next-btn" onclick="nextMoviePage()">
+                    次の作品へ
+                    <span class="en">Next movie</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2214,13 +2230,13 @@
         <!-- ここから赤い背景の長方形ラッパー（枠線なし） -->
         <div class="content-wrapper-bg">
             <!-- 作品名バー -->
-            <div class="ticket-movie-bar">
+            <div class="ticket-movie-bar" style="width: calc(100% - 30px); margin: 0 auto;">
                 <div class="ticket-movie-name" id="ticket-movie-name">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
                 <div class="ticket-movie-en" id="ticket-movie-en">Made in Abyss</div>
             </div>
 
             <!-- 日時・シアター・枚数・金額バー -->
-            <div class="ticket-info-bar">
+            <div class="ticket-info-bar" style="width: calc(100% - 30px); margin: 0 auto;">
                 <div class="ticket-info-cell" id="ticket-date-text">10月27日(火)</div>
                 <div class="ticket-info-cell" id="ticket-time-text">16:30 〜 17:55</div>
                 <div class="ticket-info-cell" id="ticket-theater-text">シアター11</div>
