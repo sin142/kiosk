@@ -49,7 +49,7 @@
             height: 100%;
             padding: 40px;
             box-sizing: border-box;
-            background-color: #ffffff; /* 機能ごとに囲われている部分を除き、基本背景を白に変更 */
+            background-color: #ffffff;
         }
 
         /* 左端の帯（サイドバー）の追加スタイル */
@@ -99,9 +99,21 @@
             top: 120px;
             left: 35px;
             font-size: 40px;
-            color: #212529; /* 左帯の暗い背景に合わせて文字色を白に変更 */
+            color: #212529;
             font-family: Arial, sans-serif;
             z-index: 10;
+        }
+
+        /* 共通の情報ラッパー（タイトルやオプション群を囲う薄い赤の長方形。枠線は無し） */
+        .content-wrapper-bg {
+            margin-left: 170px;
+            width: calc(100% - 220px);
+            height: 750px; /* 下部ボタンに被らない程度の高さ */
+            background-color: #fdf5ef; /* 薄い赤/オレンジ系の背景 */
+            border: none; /* 枠線を削除 */
+            box-sizing: border-box;
+            position: relative; /* 内部要素の絶対配置用 */
+            margin-bottom: 20px;
         }
 
         /* --- スタート画面専用スタイル --- */
@@ -187,16 +199,11 @@
             position: relative;
             font-weight: bold;
             line-height: 1.1;
-            
-            /* 未着手状態（デフォルト）のスタイル */
             background-color: #d1dad3; 
             color: #333333;
-            
-            /* clip-path を用いて矢印形状を作成 */
             clip-path: polygon(0% 0%, calc(100% - 20px) 0%, 100% 50%, calc(100% - 20px) 100%, 0% 100%, 20px 50%);
-            /* 前の要素と重ねて隙間（3px）を作る */
             margin-left: -17px;
-            padding-left: 15px; /* テキストが中央にくるよう補正 */
+            padding-left: 15px;
         }
         .progress-step:first-child {
             clip-path: polygon(0% 0%, calc(100% - 20px) 0%, 100% 50%, calc(100% - 20px) 100%, 0% 100%);
@@ -208,13 +215,10 @@
             padding-right: 15px;
         }
 
-        /* 終了したステップの状態 */
         .progress-step.completed {
             background-color: #e5d1c2;
             color: #d0b8a5;
         }
-
-        /* 現在進行中（アクティブ）のステップの状態 */
         .progress-step.active {
             background-color: #b13324;
             color: white;
@@ -295,7 +299,7 @@
             flex-direction: column;
             align-items: center;
             gap: 25px;
-            margin-left: 130px; /* 左帯の右側領域でセンタリングするための調整 */
+            margin-left: 130px;
             width: calc(100% - 130px);
         }
         .date-btn-row {
@@ -478,11 +482,9 @@
             font-weight: normal;
             margin-top: 5px;
         }
-        /* 次へボタン */
         .movie-next-btn {
             background: linear-gradient(to bottom, #d63321, #c12b1a);
         }
-        /* 前へボタン */
         .movie-prev-btn {
             background: linear-gradient(to bottom, #837f74, #66635a);
         }
@@ -505,13 +507,12 @@
         }
         
         .showtime-movie-box {
-            margin-left: 170px;
-            width: calc(100% - 220px);
-            background-color: #e4dfd6;
-            border: 1px solid #c8bba6;
+            width: 100%;
             padding: 12px 20px;
             box-sizing: border-box;
-            margin-bottom: 10px;
+            background-color: #f7ede1;
+            border-top: 1px solid #dcbfa2;
+            border-bottom: 1px solid #dcbfa2;
         }
         .showtime-movie-title {
             font-size: 30px;
@@ -526,12 +527,11 @@
         }
 
         .showtime-date-row {
-            margin-left: 170px;
-            width: calc(100% - 220px);
+            width: 100%;
             display: flex;
             box-sizing: border-box;
-            border: 1px solid #bbb;
             background-color: #dedede;
+            border-bottom: 1px solid #bbb;
         }
         .showtime-date-cell {
             flex: 1;
@@ -540,22 +540,25 @@
             color: #666;
             border-right: 1px solid #bbb;
             text-align: left;
+            height: 45px;
+            display: flex;
+            align-items: center;
         }
         .showtime-date-cell:last-child {
             border-right: none;
         }
         .showtime-date-cell.active {
-            background-color: #d7d8d2;
+            background-color: #dfd8cf;
             color: #333;
         }
 
         .showtime-list-area {
-            margin-left: 170px;
-            margin-top: 15px;
+            width: 100%;
+            padding: 15px 20px 0 20px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            width: calc(100% - 220px);
         }
         .showtime-btn {
             background: linear-gradient(to bottom, #d63321, #b22616);
@@ -614,7 +617,7 @@
 
         .showtime-pagination-bottom {
             position: absolute;
-            bottom: 40px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -703,7 +706,6 @@
             color: #777;
         }
 
-        /* スクリーンや座席を含むラッパー */
         .seat-map-wrapper {
             flex: 1;
             background-color: #d8dad3;
@@ -731,7 +733,6 @@
             border-radius: 4px;
         }
 
-        /* グリッドを20カラムに修正 (G,Hラベルと1〜5番座席は列間隔を空けずに配置) */
         .seat-grid {
             display: grid;
             grid-template-columns: 50px repeat(18, 48px) 50px; 
@@ -790,7 +791,6 @@
             border-color: #b13324;
         }
 
-        /* 選択中の座席を表示するセクションを示す長方形の囲い（右下に配置） */
         .seat-footer-bar {
             position: absolute;
             bottom: 20px;
@@ -890,13 +890,12 @@
         }
 
         .ticket-movie-bar {
-            margin-left: 170px;
-            width: calc(100% - 220px);
+            width: 100%;
             background-color: #f7ede1;
-            border: 1px solid #dcbfa2;
-            padding: 8px 15px;
+            border-top: 1px solid #dcbfa2;
+            border-bottom: 1px solid #dcbfa2;
+            padding: 8px 20px;
             box-sizing: border-box;
-            border-bottom: none;
         }
         .ticket-movie-name {
             font-size: 24px;
@@ -908,11 +907,10 @@
         }
 
         .ticket-info-bar {
-            margin-left: 170px;
-            width: calc(100% - 220px);
+            width: 100%;
             display: flex;
             background-color: #dedede;
-            border: 1px solid #bbb;
+            border-bottom: 1px solid #bbb;
             box-sizing: border-box;
             height: 40px;
             align-items: center;
@@ -940,9 +938,9 @@
         }
 
         .ticket-main-content {
-            margin-left: 170px;
-            margin-top: 15px;
-            width: calc(100% - 220px);
+            width: 100%;
+            padding: 15px 20px 0 20px;
+            box-sizing: border-box;
             display: flex;
             gap: 20px;
             position: relative;
@@ -1053,11 +1051,10 @@
             color: #333;
             border-radius: 8px;
             position: absolute;
-            left: 630px;
-            top: 0;
+            left: 650px;
+            top: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        /* 枠線用の三角形 */
         .ticket-guide::before {
             content: "";
             position: absolute;
@@ -1067,7 +1064,6 @@
             border-style: solid;
             border-color: transparent #ccc transparent transparent;
         }
-        /* 背景塗りつぶし用の三角形 */
         .ticket-guide::after {
             content: "";
             position: absolute;
@@ -1101,7 +1097,6 @@
             margin-bottom: 0;
             line-height: 1.4;
         }
-        /* 枠線用の三角形 */
         .ticket-guide-text::before {
             content: "";
             position: absolute;
@@ -1111,7 +1106,6 @@
             border-style: solid;
             border-color: transparent transparent transparent #ccc;
         }
-        /* 背景塗りつぶし用の三角形 */
         .ticket-guide-text::after {
             content: "";
             position: absolute;
@@ -1183,7 +1177,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.75); /* 画像のように白系の半透明で元の要素を透過させる */
+            background: rgba(255, 255, 255, 0.75); 
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -1279,7 +1273,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.75); /* 同様に白系の半透明へ変更 */
+            background: rgba(255, 255, 255, 0.75);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -1394,10 +1388,10 @@
             border-collapse: collapse;
         }
         .confirm-row {
-            background-color: #dedbd3; /* ストライプ背景1 */
+            background-color: #dedbd3;
         }
         .confirm-row:nth-child(even) {
-            background-color: #d6d3cb; /* ストライプ背景2 */
+            background-color: #d6d3cb;
         }
         .confirm-row.total-row {
             background-color: transparent;
@@ -1476,49 +1470,6 @@
         }
         .confirm-submit-btn .en {
             font-size: 14px;
-        }
-
-        /* ボタンの共通スタイル（他画面用） */
-        .btn {
-            display: inline-block;
-            padding: 20px 40px;
-            font-size: 28px;
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-            border-radius: 12px;
-            background-color: #0d6efd;
-            color: #fff;
-            transition: opacity 0.2s;
-            margin: 10px;
-        }
-        .btn:active {
-            opacity: 0.7;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-        }
-        .btn-block {
-            display: block;
-            width: 60%;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 30px;
-        }
-
-        /* フッター（戻るボタン等の配置エリア） */
-        .screen-footer {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-        }
-        
-        /* コンテンツエリア */
-        .content-area {
-            text-align: center;
         }
     </style>
 </head>
@@ -1883,64 +1834,68 @@
             </div>
         </div>
 
-        <!-- メインコンテンツ -->
+        <!-- 見出し（赤枠の外） -->
         <div class="showtime-header-area">
             <div class="showtime-title-main">上映時間をお選びください。</div>
             <div class="showtime-title-sub">Please select a showtime.</div>
         </div>
 
-        <!-- 選択された作品情報 -->
-        <div class="showtime-movie-box">
-            <div id="selected-movie-title" class="showtime-movie-title">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
-            <div id="selected-movie-en" class="showtime-movie-en">Made in Abyss</div>
-        </div>
+        <!-- ここから赤い背景の長方形ラッパー（枠線なし） -->
+        <div class="content-wrapper-bg">
+            <!-- 選択された作品情報 -->
+            <div class="showtime-movie-box">
+                <div id="selected-movie-title" class="showtime-movie-title">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
+                <div id="selected-movie-en" class="showtime-movie-en">Made in Abyss</div>
+            </div>
 
-        <!-- 日付帯 -->
-        <div class="showtime-date-row">
-            <div class="showtime-date-cell active">本日</div>
-            <div class="showtime-date-cell"></div>
-            <div class="showtime-date-cell"></div>
-            <div class="showtime-date-cell"></div>
-        </div>
+            <!-- 日付帯 -->
+            <div class="showtime-date-row">
+                <div class="showtime-date-cell active">10月27日(火)</div>
+                <div class="showtime-date-cell"></div>
+                <div class="showtime-date-cell"></div>
+                <div class="showtime-date-cell"></div>
+            </div>
 
-        <!-- スケジュールリスト -->
-        <div class="showtime-list-area">
-            <!-- 16:30 -->
-            <div class="showtime-btn" onclick="selectShowtime('シアター11', '16:30', '17:55')">
-                <div class="showtime-info-left">
-                    <div class="showtime-theater-info">
-                        <span>シアター11</span>
-                        <span>座席数:101</span>
+            <!-- スケジュールリスト -->
+            <div class="showtime-list-area">
+                <!-- 16:30 -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター11', '16:30', '17:55')">
+                    <div class="showtime-info-left">
+                        <div class="showtime-theater-info">
+                            <span>シアター11</span>
+                            <span>座席数:101</span>
+                        </div>
+                        <div class="showtime-time-info">16:30 〜17:55</div>
                     </div>
-                    <div class="showtime-time-info">16:30 〜17:55</div>
+                    <!-- 空席あり（◎）アイコン -->
+                    <div class="showtime-status-icon">
+                        <div class="showtime-status-icon-inner"></div>
+                    </div>
                 </div>
-                <!-- 空席あり（◎）アイコン -->
-                <div class="showtime-status-icon">
-                    <div class="showtime-status-icon-inner"></div>
+
+                <!-- 21:40 -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター6', '21:40', '23:05')">
+                    <div class="showtime-info-left">
+                        <div class="showtime-theater-info">
+                            <span>シアター11</span>
+                            <span>座席数:101</span>
+                        </div>
+                        <div class="showtime-time-info">21:40 〜23:05</div>
+                    </div>
+                    <!-- 空席あり（◎）アイコン -->
+                    <div class="showtime-status-icon">
+                        <div class="showtime-status-icon-inner"></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 21:40 -->
-            <div class="showtime-btn" onclick="selectShowtime('シアター6', '21:40', '23:05')">
-                <div class="showtime-info-left">
-                    <div class="showtime-theater-info">
-                        <span>シアター11</span>
-                        <span>座席数:101</span>
-                    </div>
-                    <div class="showtime-time-info">21:40 〜23:05</div>
-                </div>
-                <!-- 空席あり（◎）アイコン -->
-                <div class="showtime-status-icon">
-                    <div class="showtime-status-icon-inner"></div>
-                </div>
+            <!-- 下部ページネーション表示（枠線の内側に配置） -->
+            <div class="showtime-pagination-bottom">
+                <div class="page-nums">1/1</div>
+                <div class="page-label">ページ</div>
             </div>
         </div>
 
-        <!-- 下部ページネーション表示（デザインのみ） -->
-        <div class="showtime-pagination-bottom">
-            <div class="page-nums">1/1</div>
-            <div class="page-label">ページ</div>
-        </div>
     </div>
 
     <!-- 5. 座席選択画面 -->
@@ -2162,38 +2117,41 @@
             </div>
         </div>
 
-        <!-- メインコンテンツ -->
+        <!-- 見出し（赤枠の外） -->
         <div class="ticket-header-area">
             <div class="ticket-title-main">座席ごとに券種を選択してください。</div>
             <div class="ticket-title-sub">Please select a ticket type for each seat.</div>
         </div>
 
-        <!-- 作品名バー -->
-        <div class="ticket-movie-bar">
-            <div class="ticket-movie-name" id="ticket-movie-name">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
-            <div class="ticket-movie-en" id="ticket-movie-en">Made in Abyss</div>
-        </div>
-
-        <!-- 日時・シアター・枚数・金額バー -->
-        <div class="ticket-info-bar">
-            <div class="ticket-info-cell" id="ticket-date-text">本日</div>
-            <div class="ticket-info-cell" id="ticket-time-text">16:30 〜 17:55</div>
-            <div class="ticket-info-cell" id="ticket-theater-text">シアター11</div>
-            <div class="ticket-info-cell ticket-info-count" id="ticket-count-text">0 / 1枚</div>
-            <div class="ticket-info-cell ticket-info-price" id="ticket-price-text">-- , ---</div>
-        </div>
-
-        <!-- 券種選択リストと右側ガイド -->
-        <div class="ticket-main-content">
-            <div class="ticket-seat-list" id="ticket-seat-list">
-                <!-- JSで動的生成 -->
+        <!-- ここから赤い背景の長方形ラッパー（枠線なし） -->
+        <div class="content-wrapper-bg">
+            <!-- 作品名バー -->
+            <div class="ticket-movie-bar">
+                <div class="ticket-movie-name" id="ticket-movie-name">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
+                <div class="ticket-movie-en" id="ticket-movie-en">Made in Abyss</div>
             </div>
-            <div class="ticket-guide" id="ticket-guide">
-                こちらをタッチして、<br>座席ごとに券種を<br>選択してください。
+
+            <!-- 日時・シアター・枚数・金額バー -->
+            <div class="ticket-info-bar">
+                <div class="ticket-info-cell" id="ticket-date-text">10月27日(火)</div>
+                <div class="ticket-info-cell" id="ticket-time-text">16:30 〜 17:55</div>
+                <div class="ticket-info-cell" id="ticket-theater-text">シアター11</div>
+                <div class="ticket-info-cell ticket-info-count" id="ticket-count-text">0 / 1枚</div>
+                <div class="ticket-info-cell ticket-info-price" id="ticket-price-text">-- , ---</div>
+            </div>
+
+            <!-- 券種選択リストと右側ガイド -->
+            <div class="ticket-main-content">
+                <div class="ticket-seat-list" id="ticket-seat-list">
+                    <!-- JSで動的生成 -->
+                </div>
+                <div class="ticket-guide" id="ticket-guide">
+                    こちらをタッチして、<br>座席ごとに券種を<br>選択してください。
+                </div>
             </div>
         </div>
 
-        <!-- 右下アクションボタン群 -->
+        <!-- 右下アクションボタン群（枠線の外側下部） -->
         <div class="ticket-bottom-actions">
             <div class="ticket-guide-text">ムビチケ、シネマチケット<br>をご利用のお客様は、<br>こちらをタッチしてください。</div>
             <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
@@ -2881,7 +2839,7 @@
         document.getElementById('ticket-movie-en').textContent = globalState.selectedMovieEn || 'Made in Abyss';
         
         if (globalState.selectedShowtime) {
-            document.getElementById('ticket-date-text').textContent = '本日'; // デモ用固定
+            document.getElementById('ticket-date-text').textContent = '10月27日(火)';
             document.getElementById('ticket-time-text').textContent = `${globalState.selectedShowtime.startTime} 〜 ${globalState.selectedShowtime.endTime}`;
             document.getElementById('ticket-theater-text').textContent = globalState.selectedShowtime.theater;
         }
