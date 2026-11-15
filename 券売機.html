@@ -92,6 +92,34 @@
             z-index: 10;
         }
 
+        /* --- スタート画面専用スタイル --- */
+        .start-text {
+            position: absolute;
+            top: 150px;
+            width: 100%;
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+        }
+        .start-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .start-btn:active {
+            transform: translate(-50%, calc(-50% + 5px));
+            box-shadow: 0 5px 15px rgba(255,0,0,0.3);
+        }
+
         /* --- トップ画面専用追加スタイル --- */
         .kinezo-btn {
             background-color: #dc3c2a;
@@ -1484,14 +1512,20 @@
 
 <div id="app-container">
 
+    <!-- 0. スタート画面 -->
+    <div id="screen-start" class="screen-container" style="display: block; background-color: #fff; position: relative;">
+        <div class="start-text">赤い丸を押してタスクを開始します</div>
+        <div class="start-btn" onclick="navigate('screen-top')"></div>
+    </div>
+
     <!-- 1. トップ画面（サービス選択） -->
-    <div id="screen-top" class="screen-container" style="display: block; position: relative; background-color: #fff;">
+    <div id="screen-top" class="screen-container" style="display: none; position: relative; background-color: #fff;">
         <!-- 左上のロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- メインタイトル -->
-        <div class="screen-header" style="margin-top: 120px; border-bottom: none; margin-bottom: 50px;">
+        <div class="screen-header" style="margin-top: 120px; border-bottom: none; margin-bottom: 20px;">
             <h2 style="font-size: 46px; font-weight: 500; color: #333; margin-bottom: 15px;">ご希望のサービスをおえらびください。</h2>
             <p style="font-size: 26px; color: #666; margin: 0;">Please select the service.</p>
         </div>
@@ -1513,7 +1547,7 @@
                     </div>
                     <!-- PCモニター -->
                     <div style="width: 220px; height: 150px; border: 4px solid white; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;">
-                        <div style="font-size: 40px; font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: 2px;">KINEZO</div>
+                        <div style="font-size: 40px; font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: 2px;">CINEMA</div>
                         <div style="font-size: 10px; margin-top: 5px;">ONLINE ENTERTAINMENT SYSTEM</div>
                         <!-- スタンド -->
                         <div style="width: 50px; height: 20px; border-left: 4px solid white; border-right: 4px solid white; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); box-sizing: border-box;"></div>
@@ -1546,24 +1580,19 @@
         </div>
 
         <!-- 注意書き -->
-        <div style="display: flex; align-items: center; justify-content: center; margin-top: 60px; gap: 30px;">
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 30px;">
             <div style="width: 75px; height: 75px; background-color: #ea4d30; border-radius: 50%; color: white; font-size: 55px; font-weight: bold; display: flex; align-items: center; justify-content: center;">!</div>
             <div style="text-align: left;">
                 <p style="font-size: 30px; color: #444; margin: 0 0 5px 0;">紙の前売券・割引券をご利用の方はチケット窓口<br>までお越しください。</p>
                 <p style="font-size: 20px; color: #888; margin: 0;">Please use an advance ticket(except mubichike) or discount ticket at the box office.</p>
             </div>
         </div>
-
-        <!-- 商標 -->
-        <div style="position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 14px; color: #888;">
-            QRコードは(株)デンソーウェーブの登録商標です。
-        </div>
     </div>
 
     <!-- 2. 鑑賞日選択画面 -->
     <div id="screen-date" class="screen-container">
         <!-- ロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- プログレスナビゲーション -->
@@ -1640,7 +1669,6 @@
             <button class="date-btn date-btn-top" onclick="selectDate('today')">
                 <div class="date-btn-title">本日</div>
                 <div class="date-btn-en">Today</div>
-                <div class="date-btn-date">10月27日 (火)</div>
             </button>
             
             <div class="date-btn-row">
@@ -1663,7 +1691,7 @@
     <!-- 3. 作品選択画面 -->
     <div id="screen-movie" class="screen-container">
         <!-- ロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- プログレスナビゲーション -->
@@ -1736,7 +1764,7 @@
         </div>
 
         <div class="movie-date-box">
-            10月27日(火)の上映
+            本日の上映
         </div>
 
         <div class="movie-count-area">
@@ -1775,7 +1803,7 @@
     <!-- 4. 時間帯選択画面 -->
     <div id="screen-showtime" class="screen-container">
         <!-- ロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- プログレスナビゲーション -->
@@ -1855,7 +1883,7 @@
 
         <!-- 日付帯 -->
         <div class="showtime-date-row">
-            <div class="showtime-date-cell active">10月 27日 (火)</div>
+            <div class="showtime-date-cell active">本日</div>
             <div class="showtime-date-cell"></div>
             <div class="showtime-date-cell"></div>
             <div class="showtime-date-cell"></div>
@@ -1904,7 +1932,7 @@
     <!-- 5. 座席選択画面 -->
     <div id="screen-seat" class="screen-container">
         <!-- ロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- プログレスナビゲーション -->
@@ -2056,7 +2084,7 @@
     <!-- 6. 券種選択画面 (画像をもとにUI構築) -->
     <div id="screen-ticket" class="screen-container">
         <!-- ロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- プログレスナビゲーション -->
@@ -2134,7 +2162,7 @@
 
         <!-- 日時・シアター・枚数・金額バー -->
         <div class="ticket-info-bar">
-            <div class="ticket-info-cell" id="ticket-date-text">10月27日(火)</div>
+            <div class="ticket-info-cell" id="ticket-date-text">本日</div>
             <div class="ticket-info-cell" id="ticket-time-text">16:30 〜 17:55</div>
             <div class="ticket-info-cell" id="ticket-theater-text">シアター11</div>
             <div class="ticket-info-cell ticket-info-count" id="ticket-count-text">0 / 1枚</div>
@@ -2231,7 +2259,7 @@
     <!-- 7. 内容確認画面 -->
     <div id="screen-confirm" class="screen-container">
         <!-- ロゴと時計 -->
-        <div class="top-header-kinezo">KINEZO</div>
+        <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- プログレスナビゲーション -->
@@ -2317,7 +2345,7 @@
                             <div class="ja">上映時間</div>
                             <div class="en">Screen Time</div>
                         </td>
-                        <td class="confirm-td" id="confirm-datetime">10月27日(火) 16:30〜17:55</td>
+                        <td class="confirm-td" id="confirm-datetime">本日 16:30〜17:55</td>
                     </tr>
                     <!-- シアター -->
                     <tr class="confirm-row">
@@ -2823,7 +2851,7 @@
         document.getElementById('ticket-movie-en').textContent = globalState.selectedMovieEn || 'Made in Abyss';
         
         if (globalState.selectedShowtime) {
-            document.getElementById('ticket-date-text').textContent = '10月27日(火)'; // デモ用固定
+            document.getElementById('ticket-date-text').textContent = '本日'; // デモ用固定
             document.getElementById('ticket-time-text').textContent = `${globalState.selectedShowtime.startTime} 〜 ${globalState.selectedShowtime.endTime}`;
             document.getElementById('ticket-theater-text').textContent = globalState.selectedShowtime.theater;
         }
@@ -2983,7 +3011,7 @@
         // 日付・時間・シアター
         if (globalState.selectedShowtime) {
             // デモ用の固定日付と、動的な時間を組み合わせる
-            document.getElementById('confirm-datetime').innerHTML = `10月27日(火)&nbsp;&nbsp;${globalState.selectedShowtime.startTime}〜${globalState.selectedShowtime.endTime}`;
+            document.getElementById('confirm-datetime').innerHTML = `本日&nbsp;&nbsp;${globalState.selectedShowtime.startTime}〜${globalState.selectedShowtime.endTime}`;
             document.getElementById('confirm-theater').textContent = globalState.selectedShowtime.theater;
         }
 
