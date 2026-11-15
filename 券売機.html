@@ -2427,9 +2427,39 @@
     };
 
     /**
+     * 【状態初期化処理】
+     * トップ画面に戻る際に全ての選択状態とUIを初期状態に戻す
+     */
+    function resetGlobalState() {
+        globalState.selectedDate = null;
+        globalState.selectedMovie = null;
+        globalState.selectedMovieEn = null;
+        globalState.selectedShowtime = null;
+        globalState.selectedSeats = [];
+        globalState.accountLinked = false;
+        globalState.ticketTypes = [];
+        globalState.totalAmount = 0;
+        globalState.paymentMethod = null;
+
+        // 作品リストのページを1に戻す
+        currentMoviePage = 1;
+        renderMoviePage();
+
+        // 座席選択のUIリセット
+        const allSelectedSeats = document.querySelectorAll('.seat-btn-cell.selected');
+        allSelectedSeats.forEach(el => el.classList.remove('selected'));
+        updateSeatFooterUI();
+    }
+
+    /**
      * 【画面遷移処理】
      */
     function navigate(targetScreenId) {
+        // トップ画面へ戻る場合は内容を初期化
+        if (targetScreenId === 'screen-top') {
+            resetGlobalState();
+        }
+
         const screens = document.querySelectorAll('.screen-container');
         screens.forEach(screen => {
             screen.style.display = 'none';
