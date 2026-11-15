@@ -49,7 +49,19 @@
             height: 100%;
             padding: 40px;
             box-sizing: border-box;
-            background-color: #d7d8d2; /* 画面全体の背景色調整 */
+            background-color: #ffffff; /* 機能ごとに囲われている部分を除き、基本背景を白に変更 */
+        }
+
+        /* 左端の帯（サイドバー）の追加スタイル */
+        .with-sidebar::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 170px;
+            height: 100%;
+            background-color: #bac4b8; /* 画像の帯に合わせたダークブラウン系ブラック */
+            z-index: 1;
         }
 
         /* ヘッダー周り（デフォルト） */
@@ -87,7 +99,7 @@
             top: 90px;
             left: 40px;
             font-size: 28px;
-            color: #666;
+            color: #ffffff; /* 左帯の暗い背景に合わせて文字色を白に変更 */
             font-family: Arial, sans-serif;
             z-index: 10;
         }
@@ -177,7 +189,7 @@
             font-weight: bold;
             line-height: 1.1;
         }
-        .progress-step:not(:last-child)::after {
+        .progress-step:not(:last-child):after {
             content: "";
             position: absolute;
             right: -20px;
@@ -189,7 +201,7 @@
             border-left: 20px solid #bac4b8;
             z-index: 2;
         }
-        .progress-step:not(:first-child)::before {
+        .progress-step:not(:first-child):before {
             content: "";
             position: absolute;
             left: 0;
@@ -198,14 +210,14 @@
             height: 0;
             border-top: 30px solid transparent;
             border-bottom: 30px solid transparent;
-            border-left: 20px solid #d7d8d2; /* 背景色と同じにして隙間を作る */
+            border-left: 20px solid #ffffff; /* 背景色(白)と同じにして隙間を作る */
             z-index: 1;
         }
         .progress-step.active {
             background-color: #a42c1f;
             color: white;
         }
-        .progress-step.active::after {
+        .progress-step.active:after {
             border-left-color: #a42c1f;
         }
         .progress-step .ja { font-size: 18px; }
@@ -219,6 +231,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            z-index: 10;
         }
         .side-btn {
             width: 110px;
@@ -263,7 +276,7 @@
         /* --- 鑑賞日選択画面専用スタイル --- */
         .date-title-area {
             margin-top: 60px;
-            margin-left: 140px;
+            margin-left: 170px;
             margin-bottom: 50px;
         }
         .date-title-main {
@@ -282,7 +295,8 @@
             flex-direction: column;
             align-items: center;
             gap: 25px;
-            margin-left: 120px;
+            margin-left: 130px; /* 左帯の右側領域でセンタリングするための調整 */
+            width: calc(100% - 130px);
         }
         .date-btn-row {
             display: flex;
@@ -636,7 +650,7 @@
 
         .seat-main-content {
             display: flex;
-            margin-left: 40px;
+            margin-left: 170px;
             margin-right: 40px;
             height: 700px;
             gap: 20px;
@@ -1030,7 +1044,7 @@
             font-weight: bold;
         }
 
-        /* ＝＝＝ 修正：中央の吹き出しも枠線ありの2段重ねに統一 ＝＝＝ */
+        /* 中央の吹き出し */
         .ticket-guide {
             background-color: rgba(255,255,255,0.8);
             border: 1px solid #ccc;
@@ -1048,7 +1062,7 @@
             content: "";
             position: absolute;
             top: 30px;
-            left: -21px; /* 1px外側へ */
+            left: -21px;
             border-width: 10px 21px 10px 0;
             border-style: solid;
             border-color: transparent #ccc transparent transparent;
@@ -1058,7 +1072,7 @@
             content: "";
             position: absolute;
             top: 31px;
-            left: -19px; /* 本体に1px重ねて枠線を消す */
+            left: -19px;
             border-width: 9px 20px 9px 0;
             border-style: solid;
             border-color: transparent rgba(255,255,255,0.8) transparent transparent;
@@ -1513,25 +1527,25 @@
 <div id="app-container">
 
     <!-- 0. スタート画面 -->
-    <div id="screen-start" class="screen-container" style="display: block; background-color: #fff; position: relative;">
+    <div id="screen-start" class="screen-container" style="display: block; position: relative;">
         <div class="start-text">赤い丸を押してタスクを開始します</div>
         <div class="start-btn" onclick="navigate('screen-top')"></div>
     </div>
 
     <!-- 1. トップ画面（サービス選択） -->
-    <div id="screen-top" class="screen-container" style="display: none; position: relative; background-color: #fff;">
+    <div id="screen-top" class="screen-container with-sidebar" style="display: none; position: relative;">
         <!-- 左上のロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
 
         <!-- メインタイトル -->
-        <div class="screen-header" style="margin-top: 120px; border-bottom: none; margin-bottom: 20px;">
+        <div class="screen-header" style="margin-top: 120px; margin-left: 130px; border-bottom: none; margin-bottom: 20px;">
             <h2 style="font-size: 46px; font-weight: 500; color: #333; margin-bottom: 15px;">ご希望のサービスをおえらびください。</h2>
             <p style="font-size: 26px; color: #666; margin: 0;">Please select the service.</p>
         </div>
 
         <!-- ボタンエリア -->
-        <div style="display: flex; justify-content: center; gap: 40px; width: 100%;">
+        <div style="display: flex; justify-content: center; gap: 40px; margin-left: 130px; width: calc(100% - 130px);">
             
             <!-- 左ボタン：チケットを予約済みの方 -->
             <div class="kinezo-btn kinezo-btn-large" onclick="navigate('screen-date')">
@@ -1580,7 +1594,7 @@
         </div>
 
         <!-- 注意書き -->
-        <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 30px;">
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 30px; margin-left: 130px; width: calc(100% - 130px);">
             <div style="width: 75px; height: 75px; background-color: #ea4d30; border-radius: 50%; color: white; font-size: 55px; font-weight: bold; display: flex; align-items: center; justify-content: center;">!</div>
             <div style="text-align: left;">
                 <p style="font-size: 30px; color: #444; margin: 0 0 5px 0;">紙の前売券・割引券をご利用の方はチケット窓口<br>までお越しください。</p>
@@ -1590,7 +1604,7 @@
     </div>
 
     <!-- 2. 鑑賞日選択画面 -->
-    <div id="screen-date" class="screen-container">
+    <div id="screen-date" class="screen-container with-sidebar">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
@@ -1689,7 +1703,7 @@
     </div>
 
     <!-- 3. 作品選択画面 -->
-    <div id="screen-movie" class="screen-container">
+    <div id="screen-movie" class="screen-container with-sidebar">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
@@ -1801,7 +1815,7 @@
     </div>
 
     <!-- 4. 時間帯選択画面 -->
-    <div id="screen-showtime" class="screen-container">
+    <div id="screen-showtime" class="screen-container with-sidebar">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
@@ -1930,7 +1944,7 @@
     </div>
 
     <!-- 5. 座席選択画面 -->
-    <div id="screen-seat" class="screen-container">
+    <div id="screen-seat" class="screen-container with-sidebar">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
@@ -2082,7 +2096,7 @@
     </div>
 
     <!-- 6. 券種選択画面 (画像をもとにUI構築) -->
-    <div id="screen-ticket" class="screen-container">
+    <div id="screen-ticket" class="screen-container with-sidebar">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
@@ -2257,7 +2271,7 @@
     </div>
 
     <!-- 7. 内容確認画面 -->
-    <div id="screen-confirm" class="screen-container">
+    <div id="screen-confirm" class="screen-container with-sidebar">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
