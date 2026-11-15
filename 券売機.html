@@ -565,11 +565,13 @@
 
         .showtime-list-area {
             width: 100%;
-            padding: 15px 20px 0 20px;
+            padding: 15px 30px 0 30px;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            display: grid;
+            grid-template-rows: repeat(3, auto);
+            grid-template-columns: 1fr 1fr;
+            grid-auto-flow: column;
+            gap: 15px 25px;
         }
         .showtime-btn {
             background: linear-gradient(to bottom, #d63321, #b22616);
@@ -582,7 +584,7 @@
             align-items: center;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
-            width: 800px;
+            width: 100%;
             height: 120px;
             box-sizing: border-box;
             transition: transform 0.1s;
@@ -1947,8 +1949,40 @@
 
             <!-- スケジュールリスト -->
             <div class="showtime-list-area">
-                <!-- 16:30 -->
-                <div class="showtime-btn" onclick="selectShowtime('シアター11', '16:30', '17:55')">
+                <!-- 09:50 (追加分) -->
+                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                    <div class="showtime-info-left">
+                        <div class="showtime-theater-info">
+                            <span>シアター7</span>
+                            <span>座席数:101</span>
+                        </div>
+                        <div class="showtime-time-info">09:50 〜11:15</div>
+                    </div>
+                    <!-- 空席なしアイコン -->
+                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
+                    </div>
+                </div>
+
+                <!-- 13:10 (追加分) -->
+                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                    <div class="showtime-info-left">
+                        <div class="showtime-theater-info">
+                            <span>シアター9</span>
+                            <span>座席数:101</span>
+                        </div>
+                        <div class="showtime-time-info">13:10 〜14:35</div>
+                    </div>
+                    <!-- 空席なしアイコン -->
+                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
+                    </div>
+                </div>
+
+                <!-- 16:30 (元のコード) -->
+                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター11</span>
@@ -1956,14 +1990,31 @@
                         </div>
                         <div class="showtime-time-info">16:30 〜17:55</div>
                     </div>
-                    <!-- 空席あり（◎）アイコン -->
-                    <div class="showtime-status-icon">
-                        <div class="showtime-status-icon-inner"></div>
+                    <!-- 空席なしアイコン -->
+                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
                     </div>
                 </div>
 
-                <!-- 21:40 -->
-                <div class="showtime-btn" onclick="selectShowtime('シアター6', '21:40', '23:05')">
+                <!-- 18:45 (追加分) -->
+                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                    <div class="showtime-info-left">
+                        <div class="showtime-theater-info">
+                            <span>シアター8</span>
+                            <span>座席数:101</span>
+                        </div>
+                        <div class="showtime-time-info">18:45 〜20:10</div>
+                    </div>
+                    <!-- 空席なしアイコン -->
+                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
+                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
+                    </div>
+                </div>
+
+                <!-- 21:40 (元のコード: 一部引数をシアター11に統一) -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター11', '21:40', '23:05')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター11</span>
