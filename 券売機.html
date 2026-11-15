@@ -2053,21 +2053,7 @@
         </div>
     </div>
 
-    <!-- 6. アカウント連携確認画面 -->
-    <div id="screen-account" class="screen-container" style="background-color: #fff;">
-        <div class="screen-header">
-            <h2>会員アカウント連携</h2>
-        </div>
-        <div class="content-area">
-            <button class="btn btn-block" onclick="initTicketScreen(); navigate('screen-ticket')">会員証（QRコード）を読み取る</button>
-            <button class="btn btn-block btn-secondary" onclick="initTicketScreen(); navigate('screen-ticket')">連携せずに次へ進む</button>
-        </div>
-        <div class="screen-footer">
-            <button class="btn btn-secondary" onclick="navigate('screen-seat')">戻る</button>
-        </div>
-    </div>
-
-    <!-- 7. 券種選択画面 (画像をもとにUI構築) -->
+    <!-- 6. 券種選択画面 (画像をもとにUI構築) -->
     <div id="screen-ticket" class="screen-container">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">KINEZO</div>
@@ -2122,7 +2108,7 @@
                 <div class="side-btn-text">最初へ<br>戻る</div>
                 <div class="en">Top</div>
             </div>
-            <div class="side-btn" onclick="navigate('screen-account')">
+            <div class="side-btn" onclick="navigate('screen-seat')">
                 <div class="side-btn-icon">
                     <svg width="46" height="28" viewBox="0 0 46 28" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="38" y1="14" x2="8" y2="14" />
@@ -2242,7 +2228,7 @@
         </div>
     </div>
 
-    <!-- 8. 内容確認画面 -->
+    <!-- 7. 内容確認画面 -->
     <div id="screen-confirm" class="screen-container">
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">KINEZO</div>
@@ -2382,37 +2368,18 @@
         </div>
 
         <!-- 右下アクションボタン（お支払いへ） -->
-        <button class="confirm-submit-btn" onclick="navigate('screen-payment')">
+        <button class="confirm-submit-btn" onclick="navigate('screen-finish')">
             <div class="main">お支払いへ</div>
             <div class="en">Payment</div>
         </button>
     </div>
 
-    <!-- 9. お支払い方法選択画面 -->
-    <div id="screen-payment" class="screen-container" style="background-color: #fff;">
-        <div class="screen-header">
-            <h2>お支払い方法を選択してください</h2>
-        </div>
-        <div class="content-area">
-            <button class="btn btn-block" onclick="navigate('screen-cash')">現金</button>
-            <button class="btn btn-block" onclick="alert('クレジットカード・電子決済処理へ遷移します')">クレジットカード・電子決済</button>
-        </div>
-        <div class="screen-footer">
-            <button class="btn btn-secondary" onclick="navigate('screen-confirm')">戻る</button>
-        </div>
-    </div>
-
-    <!-- 10. 現金支払い画面 -->
-    <div id="screen-cash" class="screen-container" style="background-color: #fff;">
-        <div class="screen-header">
-            <h2>現金支払い</h2>
-        </div>
-        <div class="content-area">
-            <p style="font-size: 32px; padding: 100px 0; font-weight: bold;">現金を投入してください</p>
-            <button class="btn btn-block" style="background-color: #198754;" onclick="completePurchase()">支払いを完了する（発券デモ）</button>
-        </div>
-        <div class="screen-footer">
-            <button class="btn btn-secondary" onclick="navigate('screen-payment')">お支払い方法選択へ戻る</button>
+    <!-- 8. タスク完了画面 -->
+    <div id="screen-finish" class="screen-container" style="background-color: #fff;">
+        <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <div style="font-size: 48px; font-weight: bold; color: #333; text-align: center;">
+                タスクは完了です。操作を止めて、実験者の指示に従ってください
+            </div>
         </div>
     </div>
 
@@ -2504,35 +2471,6 @@
     function selectShowtime(theater, startTime, endTime) {
         globalState.selectedShowtime = { theater, startTime, endTime };
         navigate('screen-seat');
-    }
-
-    /**
-     * 【購入完了デモ処理】
-     */
-    function completePurchase() {
-        alert('発券が完了しました。\nご利用ありがとうございました。');
-        
-        // ステート初期化
-        globalState.selectedDate = null;
-        globalState.selectedMovie = null;
-        globalState.selectedMovieEn = null;
-        globalState.selectedShowtime = null;
-        globalState.selectedSeats = [];
-        globalState.accountLinked = false;
-        globalState.ticketTypes = [];
-        globalState.totalAmount = 0;
-        globalState.paymentMethod = null;
-        
-        localState.isTicketModalOpen = false;
-        localState.currentTicketSeat = null;
-        localState.isConfirmModalOpen = false;
-
-        // ページを初期状態に戻しておく
-        currentMoviePage = 1;
-        renderMoviePage();
-        resetSeats(); // 座席マップも初期化
-
-        navigate('screen-top');
     }
 
 
@@ -2837,7 +2775,8 @@
 
     function confirmSeats() {
         if (globalState.selectedSeats.length > 0) {
-            navigate('screen-account');
+            initTicketScreen();
+            navigate('screen-ticket');
         }
     }
 
