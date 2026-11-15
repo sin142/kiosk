@@ -873,6 +873,43 @@
         }
 
         /* --- 券種選択画面 (screen-ticket) 専用追加スタイル --- */
+        
+        /* チュートリアル用の半透明オーバーレイ */
+        .ticket-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        /* オーバーレイの上に表示して白背景で囲む要素 */
+        .highlight-element {
+            position: relative;
+            z-index: 60; /* オーバーレイ(50)より上 */
+        }
+        
+        /* 券種選択リストのコンテナに背景を設定 */
+        .ticket-main-content.highlight-element {
+            background-color: #fdf5ef; /* 元の背景色を適用して、領域ごと明るくする */
+            border-radius: 8px;
+            display: inline-flex; /* 右端まで広げないように幅をコンテンツに合わせる */
+            align-items: flex-start;
+            margin: 15px 0 0 20px; /* 親の左余白と調整 */
+            padding: 15px 20px 20px 20px;
+            gap: 30px;
+        }
+
+        /* 青い矢印アイコン (静止、左下向き) */
+        .tutorial-arrow {
+            position: absolute;
+            z-index: 70;
+            pointer-events: none;
+        }
+
         .ticket-header-area {
             margin-top: 60px;
             margin-left: 170px;
@@ -938,11 +975,7 @@
         }
 
         .ticket-main-content {
-            width: 100%;
-            padding: 15px 20px 0 20px;
             box-sizing: border-box;
-            display: flex;
-            gap: 20px;
             position: relative;
         }
         .ticket-seat-list {
@@ -1042,18 +1075,20 @@
             font-weight: bold;
         }
 
-        /* 中央の吹き出し */
+        /* 中央（上部）の吹き出し */
         .ticket-guide {
-            background-color: rgba(255,255,255,0.8);
+            background-color: rgba(255,255,255,0.95);
             border: 1px solid #ccc;
             padding: 20px;
             font-size: 26px;
             color: #333;
             border-radius: 8px;
-            position: absolute;
-            left: 650px;
+            position: absolute; /* 枠外に出すため絶対配置 */
+            left: 690px;
             top: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            height: max-content;
+            z-index: 70; /* オーバーレイ(50)より上 */
         }
         .ticket-guide::before {
             content: "";
@@ -1071,37 +1106,61 @@
             left: -19px;
             border-width: 9px 20px 9px 0;
             border-style: solid;
-            border-color: transparent rgba(255,255,255,0.8) transparent transparent;
+            border-color: transparent rgba(255,255,255,0.95) transparent transparent;
         }
 
+        /* 下部のアクションエリア */
         .ticket-bottom-actions {
             position: absolute;
             bottom: 30px;
-            right: 50px;
+            right: 50px; 
             display: flex;
-            align-items: flex-end;
-            gap: 10px;
+            align-items: flex-end; /* ボタン同士の底を揃える */
+            justify-content: flex-end;
         }
 
-        /* ムビチケ用吹き出しスタイル（右下） */
+        /* ムビチケ群（白背景で囲んでグレーアウトを避ける） */
+        .mubichike-highlight-box {
+            position: relative;
+            z-index: 60;
+            background-color: #ffffff; /* 白背景 */
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 決定ボタンラッパー（オーバーレイの下になるように） */
+        .ticket-submit-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ムビチケ用吹き出しスタイル */
         .ticket-guide-text {
-            background-color: rgba(255,255,255,0.8);
+            background-color: rgba(255,255,255,0.95);
             border: 1px solid #ccc;
             padding: 15px;
-            font-size: 18px;
+            font-size: 26px;
             color: #333;
             border-radius: 8px;
             position: relative;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            margin-right: 25px;
-            margin-bottom: 0;
+            margin-bottom: 10px; /* ムビチケ枠のpadding分とy座標を合わせる */
             line-height: 1.4;
+            text-align: left;
+            z-index: 70; /* オーバーレイの上 */
+            right: 30px;
         }
+        /* しっぽを右向きに変更 */
         .ticket-guide-text::before {
             content: "";
             position: absolute;
-            bottom: 25px;
-            right: -21px;
+            top: 50%;
+            transform: translateY(-50%);
+            right: -21px; 
+            left: auto;
             border-width: 10px 0 10px 21px;
             border-style: solid;
             border-color: transparent transparent transparent #ccc;
@@ -1109,13 +1168,16 @@
         .ticket-guide-text::after {
             content: "";
             position: absolute;
-            bottom: 26px;
-            right: -19px;
+            top: 50%;
+            transform: translateY(-50%);
+            right: -19px; 
+            left: auto;
             border-width: 9px 0 9px 20px;
             border-style: solid;
-            border-color: transparent transparent transparent rgba(255,255,255,0.8);
+            border-color: transparent transparent transparent rgba(255,255,255,0.95);
         }
 
+        /* ムビチケ・シネマチケットボタン */
         .ticket-blue-btn {
             background: linear-gradient(to bottom, #00aced, #007bb5);
             border: 1px solid #005a87;
@@ -1143,6 +1205,7 @@
             font-size: 12px;
         }
 
+        /* 決定ボタン（サイズをムビチケ・シネマチケットと統一） */
         .ticket-submit-btn {
             background: linear-gradient(to bottom, #00aced, #007bb5);
             border: 1px solid #005a87;
@@ -1155,7 +1218,7 @@
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
-            width: 140px;
+            width: 220px;
             height: 70px;
             transition: transform 0.1s;
         }
@@ -1168,6 +1231,16 @@
         }
         .ticket-submit-btn .en {
             font-size: 14px;
+        }
+        /* 決定ボタンをグレースケール＆無効にするためのクラス */
+        .ticket-submit-btn.disabled {
+            background: #a0a0a0;
+            border: 1px solid #888;
+            color: #d0d0d0;
+            cursor: not-allowed;
+            box-shadow: none;
+            filter: grayscale(100%);
+            pointer-events: none;
         }
 
         /* --- モーダル (ポップアップ) スタイル --- */
@@ -2052,6 +2125,21 @@
 
     <!-- 6. 券種選択画面 (画像をもとにUI構築) -->
     <div id="screen-ticket" class="screen-container with-sidebar">
+        <!-- チュートリアル用の半透明オーバーレイ（グレースケール化） (z-index: 50) -->
+        <div class="ticket-overlay" id="ticket-overlay"></div>
+
+        <!-- チュートリアル用の青い矢印アイコン（静止、左下向き） (z-index: 70) -->
+        <div class="tutorial-arrow" style="top: 180px; left: 825px;" id="tutorial-arrow-top">
+            <svg width="150" height="150" viewBox="0 0 100 100" style="filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.3)); transform: rotate(-135deg);">
+                <path d="M 50 10 L 90 50 L 65 50 L 65 90 L 35 90 L 35 50 L 10 50 Z" fill="#00aced" stroke="white" stroke-width="3" stroke-linejoin="round" />
+            </svg>
+        </div>
+        <div class="tutorial-arrow" style="bottom: 90px; right: 390px; left: auto;" id="tutorial-arrow-bottom">
+            <svg width="150" height="150" viewBox="0 0 100 100" style="filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.3)); transform: rotate(-135deg);">
+                <path d="M 50 10 L 90 50 L 65 50 L 65 90 L 35 90 L 35 50 L 10 50 Z" fill="#00aced" stroke="white" stroke-width="3" stroke-linejoin="round" />
+            </svg>
+        </div>
+
         <!-- ロゴと時計 -->
         <div class="top-header-kinezo">CINEMA</div>
         <div class="top-clock">16:01</div>
@@ -2140,33 +2228,48 @@
                 <div class="ticket-info-cell ticket-info-price" id="ticket-price-text">-- , ---</div>
             </div>
 
-            <!-- 券種選択リストと右側ガイド -->
-            <div class="ticket-main-content">
-                <div class="ticket-seat-list" id="ticket-seat-list">
-                    <!-- JSで動的生成 -->
+            <!-- 券種選択リスト (highlight-element でグレースケールを回避, 幅をコンテンツに合わせる) -->
+            <div style="position: relative;">
+                <div class="ticket-main-content highlight-element">
+                    <div class="ticket-seat-list" id="ticket-seat-list">
+                        <!-- JSで動的生成 -->
+                    </div>
                 </div>
+                <!-- 中央（上部）の吹き出し (highlight-element 外に出し、絶対配置) -->
                 <div class="ticket-guide" id="ticket-guide">
                     こちらをタッチして、<br>座席ごとに券種を<br>選択してください。
                 </div>
             </div>
         </div>
 
-        <!-- 右下アクションボタン群（枠線の外側下部） -->
+        <!-- 下部のアクションエリア -->
         <div class="ticket-bottom-actions">
-            <div class="ticket-guide-text">ムビチケ、シネマチケット<br>をご利用のお客様は、<br>こちらをタッチしてください。</div>
-            <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
-                <div class="main">ムビチケ</div>
-                <div class="en">Use Movi-tike</div>
-            </button>
-            <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
-                <div class="main">シネマチケット</div>
-                <div class="en">Use Cinema Ticket</div>
-            </button>
-            <!-- 全席選択後に表示される決定ボタン（内容確認画面へ遷移） -->
-            <button id="ticket-submit-btn" class="ticket-submit-btn" onclick="initConfirmScreen(); navigate('screen-confirm')" style="display:none;">
-                <div class="main">決定</div>
-                <div class="en">OK</div>
-            </button>
+            
+            <!-- 吹き出し (ハイライトなし、右向き, z-index:70) -->
+            <div class="ticket-guide-text" id="ticket-guide-bottom" >
+                ムビチケ、シネマチケット<br>をご利用のお客様は、<br>こちらをタッチしてください。
+            </div>
+            
+            <!-- ムビチケ群コンテナ (ハイライトあり) -->
+            <div class="mubichike-highlight-box highlight-element" id="mubichike-group">
+                <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
+                    <div class="main">ムビチケ</div>
+                    <div class="en">Use Movi-tike</div>
+                </button>
+                <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
+                    <div class="main">シネマチケット</div>
+                    <div class="en">Use Cinema Ticket</div>
+                </button>
+            </div>
+            
+            <!-- 決定ボタン（最初から表示し、グレースケール・無効化） -->
+            <div class="ticket-submit-wrapper" style="margin-bottom: 10px;"> <!-- ムビチケ枠のpadding分とy座標を合わせる -->
+                <button id="ticket-submit-btn" class="ticket-submit-btn disabled" onclick="initConfirmScreen(); navigate('screen-confirm')">
+                    <div class="main">決定</div>
+                    <div class="en">OK</div>
+                </button>
+            </div>
+            
         </div>
 
         <!-- 券種選択モーダル -->
@@ -2913,13 +3016,24 @@
         // ガイドメッセージと決定ボタンの表示制御
         const guide = document.getElementById('ticket-guide');
         const submitBtn = document.getElementById('ticket-submit-btn');
+        const bottomGuide = document.getElementById('ticket-guide-bottom');
         
         if (totalSeats > 0 && selectedCount === totalSeats) {
             guide.style.display = 'none';
-            submitBtn.style.display = 'flex';
+            // 全席選択されたらdisabledクラスを外し、オーバーレイと矢印、不要な下部吹き出しを隠す
+            submitBtn.classList.remove('disabled');
+            document.getElementById('ticket-overlay').style.display = 'none';
+            document.getElementById('tutorial-arrow-top').style.display = 'none';
+            document.getElementById('tutorial-arrow-bottom').style.display = 'none';
+            if(bottomGuide) bottomGuide.style.display = 'none';
         } else {
             guide.style.display = 'block';
-            submitBtn.style.display = 'none';
+            // 未選択がある場合はdisabledにし、オーバーレイと矢印、下部吹き出しを表示
+            submitBtn.classList.add('disabled');
+            document.getElementById('ticket-overlay').style.display = 'block';
+            document.getElementById('tutorial-arrow-top').style.display = 'block';
+            document.getElementById('tutorial-arrow-bottom').style.display = 'block';
+            if(bottomGuide) bottomGuide.style.display = 'block';
         }
     }
 
