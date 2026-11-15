@@ -1229,6 +1229,77 @@
             font-size: 14px;
             font-weight: normal;
         }
+        
+        /* お知らせモーダル用スタイル */
+        .info-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .info-modal {
+            width: 800px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .info-modal-header {
+            background-color: #b33924;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-modal-header .ja {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .info-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .info-modal-body {
+            padding: 50px 30px;
+            background-color: #e2e2e2;
+            font-size: 28px;
+            color: #333;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+        .info-modal-footer {
+            padding: 20px;
+            background-color: #e2e2e2;
+            display: flex;
+            justify-content: center;
+        }
+        .info-modal-btn {
+            background: linear-gradient(to bottom, #837f74, #66635a);
+            border: 2px solid #a5a298;
+            border-radius: 8px;
+            color: white;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .info-modal-btn:active {
+             transform: translateY(2px);
+             box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+        }
 
         /* --- 確認画面 (screen-confirm) 専用スタイル --- */
         .confirm-header-area {
@@ -2097,11 +2168,11 @@
         <!-- 右下アクションボタン群 -->
         <div class="ticket-bottom-actions">
             <div class="ticket-guide-text">ムビチケ、シネマチケット<br>をご利用のお客様は、<br>こちらをタッチしてください。</div>
-            <button class="ticket-blue-btn">
+            <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
                 <div class="main">ムビチケ</div>
                 <div class="en">Use Movi-tike</div>
             </button>
-            <button class="ticket-blue-btn">
+            <button class="ticket-blue-btn" onclick="openInfoModal('現在ムビチケ・シネマチケットサービスは<br>ご利用いただけません')">
                 <div class="main">シネマチケット</div>
                 <div class="en">Use Cinema Ticket</div>
             </button>
@@ -2150,6 +2221,22 @@
                         </button>
                     </div>
                     <div class="ticket-modal-page">1/1<br><span>ページ</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- お知らせ用モーダル（ムビチケ等非対応メッセージ用） -->
+        <div class="info-modal-overlay" id="info-modal-overlay" style="display:none;">
+            <div class="info-modal">
+                <div class="info-modal-header">
+                    <div class="ja">お知らせ</div>
+                    <button class="info-modal-close" onclick="closeInfoModal()">✕</button>
+                </div>
+                <div class="info-modal-body" id="info-modal-message">
+                    <!-- メッセージがここに挿入されます -->
+                </div>
+                <div class="info-modal-footer">
+                    <button class="info-modal-btn" onclick="closeInfoModal()">閉じる</button>
                 </div>
             </div>
         </div>
@@ -2868,6 +2955,22 @@
         localState.currentTicketSeat = null;
         document.getElementById('ticket-modal-overlay').style.display = 'none';
     }
+    
+    /**
+     * お知らせモーダルを表示する
+     */
+    function openInfoModal(message) {
+        document.getElementById('info-modal-message').innerHTML = message;
+        document.getElementById('info-modal-overlay').style.display = 'flex';
+    }
+
+    /**
+     * お知らせモーダルを閉じる
+     */
+    function closeInfoModal() {
+        document.getElementById('info-modal-overlay').style.display = 'none';
+    }
+
 
     /**
      * モーダル内で券種を選択した際の処理
