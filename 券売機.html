@@ -172,15 +172,14 @@
             position: absolute;
             top: 25px;
             left: 170px;
-            right: 0;
+            right: 30px;
             display: flex;
             height: 60px;
             z-index: 5;
+            background-color: #fff;
         }
         .progress-step {
             flex: 1;
-            background-color: #bac4b8; /* 非アクティブ時の背景色 */
-            color: #555;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -188,38 +187,39 @@
             position: relative;
             font-weight: bold;
             line-height: 1.1;
+            
+            /* 未着手状態（デフォルト）のスタイル */
+            background-color: #d1dad3; 
+            color: #333333;
+            
+            /* clip-path を用いて矢印形状を作成 */
+            clip-path: polygon(0% 0%, calc(100% - 20px) 0%, 100% 50%, calc(100% - 20px) 100%, 0% 100%, 20px 50%);
+            /* 前の要素と重ねて隙間（3px）を作る */
+            margin-left: -17px;
+            padding-left: 15px; /* テキストが中央にくるよう補正 */
         }
-        .progress-step:not(:last-child):after {
-            content: "";
-            position: absolute;
-            right: -20px;
-            top: 0;
-            width: 0;
-            height: 0;
-            border-top: 30px solid transparent;
-            border-bottom: 30px solid transparent;
-            border-left: 20px solid #bac4b8;
-            z-index: 2;
+        .progress-step:first-child {
+            clip-path: polygon(0% 0%, calc(100% - 20px) 0%, 100% 50%, calc(100% - 20px) 100%, 0% 100%);
+            margin-left: 0;
+            padding-left: 0;
         }
-        .progress-step:not(:first-child):before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 0;
-            height: 0;
-            border-top: 30px solid transparent;
-            border-bottom: 30px solid transparent;
-            border-left: 20px solid #ffffff; /* 背景色(白)と同じにして隙間を作る */
-            z-index: 1;
+        .progress-step:last-child {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 20px 50%);
+            padding-right: 15px;
         }
+
+        /* 終了したステップの状態 */
+        .progress-step.completed {
+            background-color: #e5d1c2;
+            color: #d0b8a5;
+        }
+
+        /* 現在進行中（アクティブ）のステップの状態 */
         .progress-step.active {
-            background-color: #a42c1f;
+            background-color: #b13324;
             color: white;
         }
-        .progress-step.active:after {
-            border-left-color: #a42c1f;
-        }
+
         .progress-step .ja { font-size: 18px; }
         .progress-step .en { font-size: 10px; font-weight: normal; }
 
@@ -1710,7 +1710,7 @@
 
         <!-- プログレスナビゲーション -->
         <div class="progress-nav">
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">鑑賞日選択</span>
                 <span class="en">Choose the day</span>
             </div>
@@ -1822,11 +1822,11 @@
 
         <!-- プログレスナビゲーション -->
         <div class="progress-nav">
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">鑑賞日選択</span>
                 <span class="en">Choose the day</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">作品選択</span>
                 <span class="en">Choose the title</span>
             </div>
@@ -1951,15 +1951,15 @@
 
         <!-- プログレスナビゲーション -->
         <div class="progress-nav">
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">鑑賞日選択</span>
                 <span class="en">Choose the day</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">作品選択</span>
                 <span class="en">Choose the title</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">時間帯選択</span>
                 <span class="en">Choose the schedule</span>
             </div>
@@ -2075,7 +2075,7 @@
             </div>
         </div>
 
-        <!-- 下部フッターバー（ミニマップを削除し、右下の囲いとして調整） -->
+        <!-- 下部フッターバー -->
         <div class="seat-footer-bar">
             <div class="seat-selected-info">
                 <div class="seat-selected-title">選択中の座席（最大5席）<br><span class="en" style="font-size:14px;color:#777;">selected seats(Max 5)</span></div>
@@ -2103,19 +2103,19 @@
 
         <!-- プログレスナビゲーション -->
         <div class="progress-nav">
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">鑑賞日選択</span>
                 <span class="en">Choose the day</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">作品選択</span>
                 <span class="en">Choose the title</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">時間帯選択</span>
                 <span class="en">Choose the schedule</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">座席選択</span>
                 <span class="en">Choose the seat</span>
             </div>
@@ -2253,7 +2253,7 @@
             </div>
         </div>
         
-        <!-- お知らせ用モーダル（ムビチケ等非対応メッセージ用） -->
+        <!-- お知らせモーダル -->
         <div class="info-modal-overlay" id="info-modal-overlay" style="display:none;">
             <div class="info-modal">
                 <div class="info-modal-header">
@@ -2278,23 +2278,23 @@
 
         <!-- プログレスナビゲーション -->
         <div class="progress-nav">
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">鑑賞日選択</span>
                 <span class="en">Choose the day</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">作品選択</span>
                 <span class="en">Choose the title</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">時間帯選択</span>
                 <span class="en">Choose the schedule</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">座席選択</span>
                 <span class="en">Choose the seat</span>
             </div>
-            <div class="progress-step">
+            <div class="progress-step completed">
                 <span class="ja">券種選択</span>
                 <span class="en">Choose the tickets</span>
             </div>
