@@ -1935,8 +1935,8 @@
         <div class="content-wrapper-bg">
             <!-- 選択された作品情報 -->
             <div class="showtime-movie-box">
-                <div id="selected-movie-title" class="showtime-movie-title">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
-                <div id="selected-movie-en" class="showtime-movie-en">Made in Abyss</div>
+                <div id="selected-movie-title" class="showtime-movie-title">紫の鷹</div>
+                <div id="selected-movie-en" class="showtime-movie-en">Purple Hawk</div>
             </div>
 
             <!-- 日付帯 -->
@@ -2282,8 +2282,8 @@
         <div class="content-wrapper-bg">
             <!-- 作品名バー -->
             <div class="ticket-movie-bar" style="width: calc(100% - 30px); margin: 0 auto;">
-                <div class="ticket-movie-name" id="ticket-movie-name">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
-                <div class="ticket-movie-en" id="ticket-movie-en">Made in Abyss</div>
+                <div class="ticket-movie-name" id="ticket-movie-name">紫の鷹</div>
+                <div class="ticket-movie-en" id="ticket-movie-en">Purple Hawk</div>
             </div>
 
             <!-- 日時・シアター・枚数・金額バー -->
@@ -2459,8 +2459,8 @@
         <div class="confirm-content-box">
             <!-- 作品名バー -->
             <div class="confirm-movie-bar">
-                <div class="confirm-movie-title" id="confirm-movie-title">劇場シリーズ【第一部】メイドインアビス 目覚める神秘</div>
-                <div class="confirm-movie-en" id="confirm-movie-en">Made in Abyss</div>
+                <div class="confirm-movie-title" id="confirm-movie-title">紫の鷹</div>
+                <div class="confirm-movie-en" id="confirm-movie-en">Purple Hawk</div>
             </div>
             
             <div class="confirm-details-area">
@@ -2694,41 +2694,26 @@
        === 作品リスト関連ロジック ===
        ========================================================= */
     const moviesData = [
-        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
-        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
-        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
-        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" },
-        { title: "【吹替】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "映画 ひつじのショーン かぼちゃ畑の怪物！", en: "Shaun the Sheep: The Beast of Mossy Bottom" },
-        { title: "【DolbyCinema・字幕】クジラに落ちた男", en: "Whalefall" },
-        { title: "バッド・ルーテナント：トウキョウ(PG12)", en: "Bad Lieutenant: Tokyo" },
-        { title: "【字幕】クジラに落ちた男", en: "Whalefall" },
-        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
-        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
-        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
-        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" },
-        { title: "【吹替】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "映画 ひつじのショーン かぼちゃ畑の怪物！", en: "Shaun the Sheep: The Beast of Mossy Bottom" },
-        { title: "【DolbyCinema・字幕】クジラに落ちた男", en: "Whalefall" },
-        { title: "バッド・ルーテナント：トウキョウ(PG12)", en: "Bad Lieutenant: Tokyo" },
-        { title: "【字幕】クジラに落ちた男", en: "Whalefall" },
-        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
-        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
-        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
-        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" },
-        { title: "【吹替】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "映画 ひつじのショーン かぼちゃ畑の怪物！", en: "Shaun the Sheep: The Beast of Mossy Bottom" },
-        { title: "【DolbyCinema・字幕】クジラに落ちた男", en: "Whalefall" },
-        { title: "バッド・ルーテナント：トウキョウ(PG12)", en: "Bad Lieutenant: Tokyo" },
-        { title: "【字幕】クジラに落ちた男", en: "Whalefall" },
-        { title: "〜ONE TALK 【15周年への想いを語る夜】〜[完成披露試写会中継]三代目 J SOUL BROTHERS 15TH", en: "" },
-        { title: "【特別音響上映】青春ブタ野郎はディアフレンドの夢を見ない", en: "Rascal does not dream of a dear friend" },
-        { title: "うるわしの宵の月", en: "In the Clear Moonlit Dusk" },
-        { title: "【DolbyCinema・字幕】ストリートファイター／ザ・ムービー", en: "Street Fighter" },
-        { title: "劇場シリーズ【第一部】メイドインアビス 目覚める神秘", en: "Made in Abyss" }
+        { title: "紫の鷹", en: "Purple Hawk" },
+        { title: "ファイアーガールズ", en: "Fire Girls" },
+        { title: "詐欺師のリゾット", en: "The Swindler's Risotto" },
+        { title: "【字幕】タ・タ・タウン", en: "Ta Ta Town" },
+        { title: "【字幕】ブリパニック", en: "Buritanic" },
+        { title: "【吹替】シックス", en: "Six" },
+        { title: "【吹替】グレートマザー", en: "The Great Mother" },
+        { title: "【吹替】パリの週末", en: "A Weekend in Paris" },
+        { title: "【吹替】ホワイトポーン", en: "The White Pawn" },
+        { title: "【字幕】リチャード・スミス / 七転八起", en: "Richard Smith: Seven Falls, Eight Rises" },
+        { title: "【字幕】ジャン", en: "Jan" },
+        { title: "【吹替】メアリー・スミスと魔女の杖", en: "Mary Smith and the Witch's Wand" },
+        { title: "【吹替】ロペンジャーズ", en: "The Ropengers" },
+        { title: "【吹替】カンブリアン・シティ", en: "Cambrian City" },
+        { title: "【字幕】オーバーライド", en: "Override" },
+        { title: "【字幕】ネメシス", en: "Nemesis" },
+        { title: "【字幕】有休のふたり", en: "Two on Paid Leave" },
+        { title: "【吹替】メトリックス", en: "The Metrics" },
+        { title: "【吹替】カウ・クロニクル", en: "The Cow Chronicles" },
+        { title: "【吹替】ルート・オブ・ザ・レンチ", en: "Route of the Wrench" }
     ];
 
     let currentMoviePage = 1;
@@ -3005,8 +2990,8 @@
      */
     function initTicketScreen() {
         // ヘッダー情報セット
-        document.getElementById('ticket-movie-name').textContent = globalState.selectedMovie || '劇場シリーズ【第一部】メイドインアビス 目覚める神秘';
-        document.getElementById('ticket-movie-en').textContent = globalState.selectedMovieEn || 'Made in Abyss';
+        document.getElementById('ticket-movie-name').textContent = globalState.selectedMovie || '紫の鷹';
+        document.getElementById('ticket-movie-en').textContent = globalState.selectedMovieEn || 'Purple Hawk';
         
         if (globalState.selectedShowtime) {
             document.getElementById('ticket-date-text').textContent = '10月27日(火)';
