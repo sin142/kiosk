@@ -2,7 +2,9 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>映画館券売機システム</title>
     <style>
         /* スクロールおよびスワイプ、テキスト選択の完全無効化（キオスク端末用要件） */
@@ -17,13 +19,69 @@
             -ms-user-select: none; /* IE/Edge用 */
         }
 
-        /* 全体の基本スタイル */
+        /* 全体の基本スタイル（全画面前後で見た目を統一） */
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            background-color: #e9ecef;
+            background-color: #000;
             margin: 0;
             padding: 0;
             color: #333;
+        }
+
+        /* 全画面表示時の背景と枠の調整 */
+        :fullscreen, :-webkit-full-screen, :-moz-full-screen, :-ms-fullscreen {
+            background-color: #000;
+        }
+        :fullscreen body, :-webkit-full-screen body, :-moz-full-screen body, :-ms-fullscreen body {
+            background-color: #000;
+        }
+        :fullscreen #app-container, :-webkit-full-screen #app-container, :-moz-full-screen #app-container, :-ms-fullscreen #app-container {
+            box-shadow: none;
+        }
+
+        /* 実験開始前の全画面準備オーバーレイ */
+        #fullscreen-setup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: pointer;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .setup-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .setup-sub {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        .setup-btn {
+            background: linear-gradient(to bottom, #00aced, #007bb5);
+            border: 1px solid #005a87;
+            border-radius: 8px;
+            color: white;
+            padding: 18px 48px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .setup-btn:active {
+            transform: scale(0.98);
         }
 
         /* キオスク端末の画面サイズを想定したコンテナ（横長 1920x1080 に変更） */
@@ -39,7 +97,7 @@
             transform-origin: center;
             
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: none;
         }
 
         /* 画面コンテナの基本設定（初期状態は display: none） */
@@ -1563,12 +1621,19 @@
 </head>
 <body>
 
+<!-- 実験開始前の全画面準備オーバーレイ（赤い丸を表示する前に全画面化するため） -->
+<div id="fullscreen-setup-overlay" onclick="initFullscreenAndShowStart()">
+    <div class="setup-title">全画面表示で準備します</div>
+    <div class="setup-sub">画面をクリック（または任意のキーを押下）すると全画面表示に切り替わり、<br>タスク開始画面が表示されます。</div>
+    <button class="setup-btn">全画面で開始準備</button>
+</div>
+
 <div id="app-container">
 
     <!-- 0. スタート画面 -->
     <div id="screen-start" class="screen-container" style="display: block; position: relative;">
         <div class="start-text">赤い丸を押してタスクを開始します</div>
-        <div class="start-btn" onclick="navigate('screen-top')"></div>
+        <div class="start-btn" onclick="startTask()"></div>
     </div>
 
     <!-- 1. トップ画面（サービス選択） -->
@@ -2558,26 +2623,89 @@
 
 <script>
     /**
-     * 【画面の自動スケール調整】
+- 【現在全画面状態かどうかの判定】
+     */
+    function isAlreadyFullscreen() {
+        return !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement ||
+            (window.innerWidth === screen.width && window.innerHeight === screen.height)
+        );
+    }
+
+    /**
+- 【全画面表示の要求処理】
+     */
+    function enterFullscreen() {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+            const requestMethod = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
+            if (requestMethod) {
+                const promise = requestMethod.call(elem);
+                if (promise && typeof promise.catch === 'function') {
+                    promise.catch(() => {
+                        // 自動実行ブロック時などのエラーを抑制
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+- 【実験準備画面から全画面化してスタート画面を表示する処理】
+     */
+    function initFullscreenAndShowStart() {
+        enterFullscreen();
+        const setupOverlay = document.getElementById('fullscreen-setup-overlay');
+        if (setupOverlay) {
+            setupOverlay.style.display = 'none';
+        }
+        setTimeout(adjustScale, 100);
+    }
+
+    /**
+- 【タスク開始処理（トップ画面へ遷移）】
+     */
+    function startTask() {
+        enterFullscreen();
+        navigate('screen-top');
+    }
+
+    /**
+- 【画面の自動スケール調整】
      */
     function adjustScale() {
         const container = document.getElementById('app-container');
         const scaleWidth = window.innerWidth / 1920;
         const scaleHeight = window.innerHeight / 1080;
-        const scale = Math.min(scaleWidth, scaleHeight, 1);
+        const scale = Math.min(scaleWidth, scaleHeight);
         container.style.transform = `translate(-50%, -50%) scale(${scale})`;
     }
     window.addEventListener('resize', adjustScale);
+    document.addEventListener('fullscreenchange', adjustScale);
+    document.addEventListener('webkitfullscreenchange', adjustScale);
+    document.addEventListener('mozfullscreenchange', adjustScale);
+    document.addEventListener('MSFullscreenChange', adjustScale);
+
+    // 準備画面が表示されている間は任意のキー押下でも全画面化＆開始準備できるようにする
+    document.addEventListener('keydown', function() {
+        const setupOverlay = document.getElementById('fullscreen-setup-overlay');
+        if (setupOverlay && setupOverlay.style.display !== 'none') {
+            initFullscreenAndShowStart();
+        }
+    });
 
     /**
-     * 【スクロール無効化処理】
+- 【スクロール無効化処理】
      */
     document.addEventListener('touchmove', function(e) {
         e.preventDefault();
     }, { passive: false });
 
     /**
-     * 【グローバルステート】
+- 【グローバルステート】
      */
     const globalState = {
         selectedDate: null,
@@ -2598,7 +2726,7 @@
     };
 
     /**
-     * 【時計の自動更新】
+- 【時計の自動更新】
      */
     function updateClock() {
         const now = new Date();
@@ -2613,8 +2741,8 @@
     }
 
     /**
-     * 【状態初期化処理】
-     * トップ画面に戻る際に全ての選択状態とUIを初期状態に戻す
+- 【状態初期化処理】
+- トップ画面に戻る際に全ての選択状態とUIを初期状態に戻す
      */
     function resetGlobalState() {
         globalState.selectedDate = null;
@@ -2638,7 +2766,7 @@
     }
 
     /**
-     * 【画面遷移処理】
+- 【画面遷移処理】
      */
     function navigate(targetScreenId) {
         // トップ画面へ戻る場合は内容を初期化
@@ -2660,7 +2788,7 @@
     }
 
     /**
-     * 【データ連携処理】鑑賞日の選択
+- 【データ連携処理】鑑賞日の選択
      */
     function selectDate(dateType) {
         globalState.selectedDate = dateType;
@@ -2668,7 +2796,7 @@
     }
 
     /**
-     * 【データ連携処理】作品の選択
+- 【データ連携処理】作品の選択
      */
     function selectMovie(movieTitle, movieEn) {
         globalState.selectedMovie = movieTitle;
@@ -2682,7 +2810,7 @@
     }
 
     /**
-     * 【データ連携処理】上映時間帯の選択
+- 【データ連携処理】上映時間帯の選択
      */
     function selectShowtime(theater, startTime, endTime) {
         globalState.selectedShowtime = { theater, startTime, endTime };
@@ -2986,7 +3114,7 @@
        ========================================================= */
 
     /**
-     * 券種選択画面を初期化し、動的な情報をセットする
+- 券種選択画面を初期化し、動的な情報をセットする
      */
     function initTicketScreen() {
         // ヘッダー情報セット
@@ -3003,7 +3131,7 @@
     }
 
     /**
-     * 座席ごとの券種選択リストを描画・更新する
+- 座席ごとの券種選択リストを描画・更新する
      */
     function renderTicketList() {
         const listContainer = document.getElementById('ticket-seat-list');
@@ -3090,7 +3218,7 @@
     }
 
     /**
-     * 券種選択モーダルを表示する
+- 券種選択モーダルを表示する
      */
     function openTicketModal(seatId) {
         localState.currentTicketSeat = seatId;
@@ -3099,7 +3227,7 @@
     }
 
     /**
-     * 券種選択モーダルを閉じる
+- 券種選択モーダルを閉じる
      */
     function closeTicketModal() {
         localState.isTicketModalOpen = false;
@@ -3108,7 +3236,7 @@
     }
     
     /**
-     * お知らせモーダルを表示する
+- お知らせモーダルを表示する
      */
     function openInfoModal(message) {
         document.getElementById('info-modal-message').innerHTML = message;
@@ -3116,7 +3244,7 @@
     }
 
     /**
-     * お知らせモーダルを閉じる
+- お知らせモーダルを閉じる
      */
     function closeInfoModal() {
         document.getElementById('info-modal-overlay').style.display = 'none';
@@ -3124,7 +3252,7 @@
 
 
     /**
-     * モーダル内で券種を選択した際の処理
+- モーダル内で券種を選択した際の処理
      */
     function selectTicketType(nameJa, nameEn, price) {
         const seatId = localState.currentTicketSeat;
@@ -3148,7 +3276,7 @@
        ========================================================= */
        
     /**
-     * 内容確認画面の情報をグローバルステートから展開する
+- 内容確認画面の情報をグローバルステートから展開する
      */
     function initConfirmScreen() {
         // 料金計算
@@ -3181,6 +3309,13 @@
 
     // 初回読み込み時の初期化処理
     document.addEventListener('DOMContentLoaded', () => {
+        // すでに全画面（キオスクモードやF11）で開かれている場合は準備画面をスキップ
+        if (isAlreadyFullscreen()) {
+            const setupOverlay = document.getElementById('fullscreen-setup-overlay');
+            if (setupOverlay) {
+                setupOverlay.style.display = 'none';
+            }
+        }
         adjustScale();
         renderMoviePage();
         renderSeatMap();
