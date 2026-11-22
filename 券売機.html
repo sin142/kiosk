@@ -682,6 +682,17 @@
         .showtime-btn:active {
             transform: scale(0.99);
         }
+        /* 上映時間選択不可（グレーアウト・バツ表示）スタイル */
+        .showtime-btn.disabled {
+            background: linear-gradient(to bottom, #a8a8a8, #8f8f8f);
+            border-color: #7d7d7d;
+            color: #e6e6e6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .showtime-btn.disabled:active {
+            transform: none;
+        }
         .showtime-info-left {
             display: flex;
             flex-direction: column;
@@ -710,12 +721,36 @@
             align-items: center;
             justify-content: center;
             margin-right: 15px;
+            position: relative;
         }
         .showtime-status-icon-inner {
             width: 34px;
             height: 34px;
             border: 5px solid white;
             border-radius: 50%;
+        }
+        /* 選択不可時のバツ（×）アイコン */
+        .showtime-btn.disabled .showtime-status-icon {
+            border: none;
+            border-radius: 0;
+        }
+        .showtime-btn.disabled .showtime-status-icon-inner {
+            display: none;
+        }
+        .showtime-btn.disabled .showtime-status-icon::before,
+        .showtime-btn.disabled .showtime-status-icon::after {
+            content: "";
+            position: absolute;
+            width: 58px;
+            height: 6px;
+            background-color: #e6e6e6;
+            border-radius: 2px;
+        }
+        .showtime-btn.disabled .showtime-status-icon::before {
+            transform: rotate(45deg);
+        }
+        .showtime-btn.disabled .showtime-status-icon::after {
+            transform: rotate(-45deg);
         }
 
         .showtime-pagination-bottom {
@@ -2675,7 +2710,7 @@
     };
 
     /**
-- 事前準備画面の入力値から被験者ID・実験群を反映
+     * 事前準備画面の入力値から被験者ID・実験群を反映
      */
     function syncExperimentConfig() {
         const pidInput = document.getElementById('input-participant-id');
@@ -2689,7 +2724,7 @@
     }
 
     /**
-- クライアント座標を 1920x1080 論理座標へ逆変換
+     * クライアント座標を 1920x1080 論理座標へ逆変換
      */
     function toLogicalCoords(clientX, clientY) {
         const container = document.getElementById('app-container');
@@ -2703,7 +2738,7 @@
     }
 
     /**
-- クリック要素から識別ラベルを取得
+     * クリック要素から識別ラベルを取得
      */
     function extractTargetLabel(target) {
         if (!target || typeof target.closest !== 'function') return '';
@@ -2720,7 +2755,7 @@
     }
 
     /**
-- メモリ上のログ配列へ軽量オブジェクトを push
+     * メモリ上のログ配列へ軽量オブジェクトを push
      */
     function pushLog(eventType, x = '', y = '', targetLabel = '') {
         if (!loggerState.isRecording) return;
@@ -2737,7 +2772,7 @@
     }
 
     /**
-- 計測開始
+     * 計測開始
      */
     function startLogging() {
         syncExperimentConfig();
@@ -2751,7 +2786,7 @@
     }
 
     /**
-- 計測終了および自動CSVダウンロード
+     * 計測終了および自動CSVダウンロード
      */
     function stopLoggingAndDownload() {
         if (!loggerState.isRecording) return;
@@ -2761,7 +2796,7 @@
     }
 
     /**
-- CSVフィールドのエスケープ処理
+     * CSVフィールドのエスケープ処理
      */
     function escapeCsvField(value) {
         if (value === null || value === undefined) return '';
@@ -2773,7 +2808,7 @@
     }
 
     /**
-- ファイル名用のタイムスタンプ文字列 (YYYYMMDD_HHMMSS) を生成
+     * ファイル名用のタイムスタンプ文字列 (YYYYMMDD_HHMMSS) を生成
      */
     function formatFileTimestamp(date) {
         const yyyy = date.getFullYear();
@@ -2786,7 +2821,7 @@
     }
 
     /**
-- ログ配列をUTF-8 (BOM付き) のCSVへ変換してダウンロード
+     * ログ配列をUTF-8 (BOM付き) のCSVへ変換してダウンロード
      */
     function downloadLogsAsCSV() {
         if (loggerState.logs.length === 0) return;
@@ -2858,7 +2893,7 @@
     });
 
     /**
-- 【現在全画面状態かどうかの判定】
+     * 【現在全画面状態かどうかの判定】
      */
     function isAlreadyFullscreen() {
         return !!(
@@ -2871,7 +2906,7 @@
     }
 
     /**
-- 【全画面表示の要求処理】
+     * 【全画面表示の要求処理】
      */
     function enterFullscreen() {
         const elem = document.documentElement;
@@ -2889,7 +2924,7 @@
     }
 
     /**
-- 【実験準備画面から全画面化してスタート画面を表示する処理】
+     * 【実験準備画面から全画面化してスタート画面を表示する処理】
      */
     function initFullscreenAndShowStart() {
         syncExperimentConfig();
@@ -2902,7 +2937,7 @@
     }
 
     /**
-- 【タスク開始処理（トップ画面へ遷移）】
+     * 【タスク開始処理（トップ画面へ遷移）】
      */
     function startTask() {
         startLogging();
@@ -2911,7 +2946,7 @@
     }
 
     /**
-- 【画面の自動スケール調整】
+     * 【画面の自動スケール調整】
      */
     function adjustScale() {
         const container = document.getElementById('app-container');
@@ -2938,14 +2973,14 @@
     });
 
     /**
-- 【スクロール無効化処理】
+     * 【スクロール無効化処理】
      */
     document.addEventListener('touchmove', function(e) {
         e.preventDefault();
     }, { passive: false });
 
     /**
-- 【グローバルステート】
+     * 【グローバルステート】
      */
     const globalState = {
         selectedDate: null,
@@ -2966,7 +3001,7 @@
     };
 
     /**
-- 【時計の自動更新】
+     * 【時計の自動更新】
      */
     function updateClock() {
         const now = new Date();
@@ -2981,8 +3016,8 @@
     }
 
     /**
-- 【状態初期化処理】
-- トップ画面に戻る際に全ての選択状態とUIを初期状態に戻す
+     * 【状態初期化処理】
+     * トップ画面に戻る際に全ての選択状態とUIを初期状態に戻す
      */
     function resetGlobalState() {
         globalState.selectedDate = null;
@@ -2999,6 +3034,9 @@
         currentMoviePage = 1;
         renderMoviePage();
 
+        // 上映時間ボタンの状態をリセット
+        updateShowtimeButtons();
+
         // 座席選択のUIリセット
         buildSeatMapData('double_circle');
         renderSeatMap();
@@ -3006,7 +3044,7 @@
     }
 
     /**
-- 【画面遷移処理】
+     * 【画面遷移処理】
      */
     function navigate(targetScreenId) {
         // トップ画面へ戻る場合は内容を初期化
@@ -3038,7 +3076,7 @@
     }
 
     /**
-- 【データ連携処理】鑑賞日の選択
+     * 【データ連携処理】鑑賞日の選択
      */
     function selectDate(dateType) {
         globalState.selectedDate = dateType;
@@ -3046,7 +3084,23 @@
     }
 
     /**
-- 【データ連携処理】作品の選択
+     * 【上映時間ボタンの有効/無効表示更新】
+     * 吹替のブリパニック以外はバツ表示・グレーアウトにする
+     */
+    function updateShowtimeButtons() {
+        const isAvailable = (globalState.selectedMovie === '【吹替】ブリパニック');
+        const showtimeBtns = document.querySelectorAll('#screen-showtime .showtime-btn');
+        showtimeBtns.forEach(btn => {
+            if (isAvailable) {
+                btn.classList.remove('disabled');
+            } else {
+                btn.classList.add('disabled');
+            }
+        });
+    }
+
+    /**
+     * 【データ連携処理】作品の選択
      */
     function selectMovie(movieTitle, movieEn) {
         globalState.selectedMovie = movieTitle;
@@ -3056,13 +3110,21 @@
         document.getElementById('selected-movie-title').textContent = movieTitle;
         document.getElementById('selected-movie-en').textContent = movieEn || '';
 
+        // 上映時間ボタンの有効/無効状態を更新
+        updateShowtimeButtons();
+
         navigate('screen-showtime');
     }
 
     /**
-- 【データ連携処理】上映時間帯の選択
+     * 【データ連携処理】上映時間帯の選択
      */
     function selectShowtime(theater, startTime, endTime, statusType = 'double_circle') {
+        // 吹替のブリパニック以外は選択不可
+        if (globalState.selectedMovie !== '【吹替】ブリパニック') {
+            return;
+        }
+
         globalState.selectedShowtime = { theater, startTime, endTime, statusType };
         globalState.selectedSeats = [];
         globalState.ticketTypes = [];
@@ -3385,7 +3447,7 @@
        ========================================================= */
 
     /**
-- 券種選択画面を初期化し、動的な情報をセットする
+     * 券種選択画面を初期化し、動的な情報をセットする
      */
     function initTicketScreen() {
         // ヘッダー情報セット
@@ -3402,7 +3464,7 @@
     }
 
     /**
-- 座席ごとの券種選択リストを描画・更新する
+     * 座席ごとの券種選択リストを描画・更新する
      */
     function renderTicketList() {
         const listContainer = document.getElementById('ticket-seat-list');
@@ -3489,7 +3551,7 @@
     }
 
     /**
-- 券種選択モーダルを表示する
+     * 券種選択モーダルを表示する
      */
     function openTicketModal(seatId) {
         localState.currentTicketSeat = seatId;
@@ -3500,7 +3562,7 @@
     }
 
     /**
-- 券種選択モーダルを閉じる
+     * 券種選択モーダルを閉じる
      */
     function closeTicketModal() {
         localState.isTicketModalOpen = false;
@@ -3511,7 +3573,7 @@
     }
     
     /**
-- お知らせモーダルを表示する
+     * お知らせモーダルを表示する
      */
     function openInfoModal(message) {
         document.getElementById('info-modal-message').innerHTML = message;
@@ -3521,7 +3583,7 @@
     }
 
     /**
-- お知らせモーダルを閉じる
+     * お知らせモーダルを閉じる
      */
     function closeInfoModal() {
         document.getElementById('info-modal-overlay').style.display = 'none';
@@ -3531,7 +3593,7 @@
 
 
     /**
-- モーダル内で券種を選択した際の処理
+     * モーダル内で券種を選択した際の処理
      */
     function selectTicketType(nameJa, nameEn, price) {
         const seatId = localState.currentTicketSeat;
@@ -3555,7 +3617,7 @@
        ========================================================= */
        
     /**
-- 内容確認画面の情報をグローバルステートから展開する
+     * 内容確認画面の情報をグローバルステートから展開する
      */
     function initConfirmScreen() {
         // 料金計算
