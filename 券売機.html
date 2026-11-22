@@ -957,19 +957,22 @@
         .seat-action-btn {
             width: 200px;
             height: 80px;
-            border: none;
-            border-radius: 8px;
+            border: 1px solid #888;
+            border-radius: 6px;
             font-size: 22px;
             font-weight: bold;
-            color: #fff;
+            color: #d0d0d0;
             cursor: not-allowed;
-            background-color: #a0a0a0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            transition: background-color 0.2s, transform 0.1s;
+            background: #a0a0a0;
+            box-shadow: none;
+            transition: background 0.2s, transform 0.1s;
         }
         .seat-action-btn.active {
             cursor: pointer;
-            background-color: #0277bd;
+            background: linear-gradient(to bottom, #00aced, #007bb5);
+            border: 1px solid #005a87;
+            color: #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
         }
         .seat-action-btn.active:active {
             transform: scale(0.98);
@@ -2684,7 +2687,7 @@
     };
 
     /**
-     * 事前準備画面の入力値から被験者ID・実験群を反映
+- 事前準備画面の入力値から被験者ID・実験群を反映
      */
     function syncExperimentConfig() {
         const pidInput = document.getElementById('input-participant-id');
@@ -2698,7 +2701,7 @@
     }
 
     /**
-     * クライアント座標を 1920x1080 論理座標へ逆変換
+- クライアント座標を 1920x1080 論理座標へ逆変換
      */
     function toLogicalCoords(clientX, clientY) {
         const container = document.getElementById('app-container');
@@ -2712,7 +2715,7 @@
     }
 
     /**
-     * クリック要素から識別ラベルを取得
+- クリック要素から識別ラベルを取得
      */
     function extractTargetLabel(target) {
         if (!target || typeof target.closest !== 'function') return '';
@@ -2729,7 +2732,7 @@
     }
 
     /**
-     * メモリ上のログ配列へ軽量オブジェクトを push
+- メモリ上のログ配列へ軽量オブジェクトを push
      */
     function pushLog(eventType, x = '', y = '', targetLabel = '') {
         if (!loggerState.isRecording) return;
@@ -2746,7 +2749,7 @@
     }
 
     /**
-     * 計測開始
+- 計測開始
      */
     function startLogging() {
         syncExperimentConfig();
@@ -2760,7 +2763,7 @@
     }
 
     /**
-     * 計測終了および自動CSVダウンロード
+- 計測終了および自動CSVダウンロード
      */
     function stopLoggingAndDownload() {
         if (!loggerState.isRecording) return;
@@ -2770,7 +2773,7 @@
     }
 
     /**
-     * CSVフィールドのエスケープ処理
+- CSVフィールドのエスケープ処理
      */
     function escapeCsvField(value) {
         if (value === null || value === undefined) return '';
@@ -2782,7 +2785,7 @@
     }
 
     /**
-     * ファイル名用のタイムスタンプ文字列 (YYYYMMDD_HHMMSS) を生成
+- ファイル名用のタイムスタンプ文字列 (YYYYMMDD_HHMMSS) を生成
      */
     function formatFileTimestamp(date) {
         const yyyy = date.getFullYear();
@@ -2795,7 +2798,7 @@
     }
 
     /**
-     * ログ配列をUTF-8 (BOM付き) のCSVへ変換してダウンロード
+- ログ配列をUTF-8 (BOM付き) のCSVへ変換してダウンロード
      */
     function downloadLogsAsCSV() {
         if (loggerState.logs.length === 0) return;
