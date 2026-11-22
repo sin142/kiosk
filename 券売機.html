@@ -2059,8 +2059,8 @@
 
             <!-- スケジュールリスト -->
             <div class="showtime-list-area">
-                <!-- 09:50 (追加分) -->
-                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                <!-- 09:50 (追加分: ○アイコン・選択可能) -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター7', '09:50', '11:15', 'circle')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター7</span>
@@ -2068,15 +2068,12 @@
                         </div>
                         <div class="showtime-time-info">09:50 〜11:15</div>
                     </div>
-                    <!-- 空席なしアイコン -->
-                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
-                    </div>
+                    <!-- 空席あり（○）アイコン -->
+                    <div class="showtime-status-icon"></div>
                 </div>
 
-                <!-- 13:10 (追加分) -->
-                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                <!-- 13:10 (追加分: ○アイコン・選択可能) -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター9', '13:10', '14:35', 'circle')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター9</span>
@@ -2084,15 +2081,12 @@
                         </div>
                         <div class="showtime-time-info">13:10 〜14:35</div>
                     </div>
-                    <!-- 空席なしアイコン -->
-                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
-                    </div>
+                    <!-- 空席あり（○）アイコン -->
+                    <div class="showtime-status-icon"></div>
                 </div>
 
-                <!-- 16:30 (元のコード) -->
-                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                <!-- 16:30 (元のコード: ○アイコン・選択可能) -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター11', '16:30', '17:55', 'circle')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター11</span>
@@ -2100,15 +2094,12 @@
                         </div>
                         <div class="showtime-time-info">16:30 〜17:55</div>
                     </div>
-                    <!-- 空席なしアイコン -->
-                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
-                    </div>
+                    <!-- 空席あり（○）アイコン -->
+                    <div class="showtime-status-icon"></div>
                 </div>
 
-                <!-- 18:45 (追加分) -->
-                <div class="showtime-btn" onclick="openInfoModal('選択された上映会のチケットは完売しております')">
+                <!-- 18:45 (追加分: ○アイコン・選択可能) -->
+                <div class="showtime-btn" onclick="selectShowtime('シアター8', '18:45', '20:10', 'circle')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター8</span>
@@ -2116,15 +2107,12 @@
                         </div>
                         <div class="showtime-time-info">18:45 〜20:10</div>
                     </div>
-                    <!-- 空席なしアイコン -->
-                    <div style="position: relative; width: 70px; height: 70px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(45deg); border-radius: 2px;"></div>
-                        <div style="position: absolute; width: 70px; height: 5px; background-color: white; transform: rotate(-45deg); border-radius: 2px;"></div>
-                    </div>
+                    <!-- 空席あり（○）アイコン -->
+                    <div class="showtime-status-icon"></div>
                 </div>
 
                 <!-- 21:40 (元のコード: 一部引数をシアター11に統一) -->
-                <div class="showtime-btn" onclick="selectShowtime('シアター11', '21:40', '23:05')">
+                <div class="showtime-btn" onclick="selectShowtime('シアター11', '21:40', '23:05', 'double_circle')">
                     <div class="showtime-info-left">
                         <div class="showtime-theater-info">
                             <span>シアター11</span>
@@ -3012,8 +3000,8 @@
         renderMoviePage();
 
         // 座席選択のUIリセット
-        const allSelectedSeats = document.querySelectorAll('.seat-btn-cell.selected');
-        allSelectedSeats.forEach(el => el.classList.remove('selected'));
+        buildSeatMapData('double_circle');
+        renderSeatMap();
         updateSeatFooterUI();
     }
 
@@ -3074,8 +3062,13 @@
     /**
 - 【データ連携処理】上映時間帯の選択
      */
-    function selectShowtime(theater, startTime, endTime) {
-        globalState.selectedShowtime = { theater, startTime, endTime };
+    function selectShowtime(theater, startTime, endTime, statusType = 'double_circle') {
+        globalState.selectedShowtime = { theater, startTime, endTime, statusType };
+        globalState.selectedSeats = [];
+        globalState.ticketTypes = [];
+        buildSeatMapData(statusType);
+        renderSeatMap();
+        updateSeatFooterUI();
         navigate('screen-seat');
     }
 
@@ -3169,37 +3162,49 @@
        ========================================================= */
 
     const seatRows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-    const seatMapData = [];
-    seatRows.forEach((row) => {
-        for (let col = 1; col <= 18; col++) {
-            let isSeat = false;
-            let type = 'normal';
-            let status = 'vacant';
+    let seatMapData = [];
 
-            if (row === 'A') {
-                if (col >= 8 && col <= 15) isSeat = true;
-                if (col === 7 || col === 16) { isSeat = true; type = 'wheelchair'; }
-            } else if (['B', 'C', 'D', 'E', 'F'].includes(row)) {
-                if (col >= 6 && col <= 17) isSeat = true;
-            } else if (row === 'G') {
-                if (col >= 1 && col <= 3) isSeat = true;
-                if (col >= 6 && col <= 17) isSeat = true;
-            } else if (row === 'H') {
-                if (col >= 1 && col <= 5) isSeat = true;
-                if (col >= 6 && col <= 18) isSeat = true;
-            }
+    function buildSeatMapData(statusType = 'double_circle') {
+        seatMapData = [];
+        seatRows.forEach((row) => {
+            for (let col = 1; col <= 18; col++) {
+                let isSeat = false;
+                let type = 'normal';
+                let status = 'vacant';
 
-            if (isSeat) {
-                // 画像に合わせて予約済みの座席を設定
-                if (row === 'D' && (col === 6 || col === 11)) status = 'reserved';
-                if (row === 'E' && col === 10) status = 'reserved'; 
-                if (row === 'F' && (col === 9 || col === 10)) status = 'reserved';
-                if (row === 'H' && col === 10) status = 'reserved';
-                
-                seatMapData.push({ id: `${row}-${col}`, row, col, type, status });
+                if (row === 'A') {
+                    if (col >= 8 && col <= 15) isSeat = true;
+                    if (col === 7 || col === 16) { isSeat = true; type = 'wheelchair'; }
+                } else if (['B', 'C', 'D', 'E', 'F'].includes(row)) {
+                    if (col >= 6 && col <= 17) isSeat = true;
+                } else if (row === 'G') {
+                    if (col >= 1 && col <= 3) isSeat = true;
+                    if (col >= 6 && col <= 17) isSeat = true;
+                } else if (row === 'H') {
+                    if (col >= 1 && col <= 5) isSeat = true;
+                    if (col >= 6 && col <= 18) isSeat = true;
+                }
+
+                if (isSeat) {
+                    // 画像に合わせて予約済みの座席を設定
+                    if (row === 'D' && (col === 6 || col === 11)) status = 'reserved';
+                    if (row === 'E' && col === 10) status = 'reserved'; 
+                    if (row === 'F' && (col === 9 || col === 10)) status = 'reserved';
+                    if (row === 'H' && col === 10) status = 'reserved';
+
+                    // ○（circle）の上映時間の場合は、G列とH列をすべて予約済み（埋まっている）にする
+                    if (statusType === 'circle' && (row === 'G' || row === 'H')) {
+                        status = 'reserved';
+                    }
+                    
+                    seatMapData.push({ id: `${row}-${col}`, row, col, type, status });
+                }
             }
-        }
-    });
+        });
+    }
+
+    // 初期の座席データを生成
+    buildSeatMapData('double_circle');
 
     function renderSeatMap() {
         const grid = document.getElementById('seat-grid');
