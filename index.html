@@ -2086,7 +2086,7 @@
 
             <!-- 日付帯 -->
             <div class="showtime-date-row">
-                <div class="showtime-date-cell active">10月27日(火)</div>
+                <div class="showtime-date-cell active">本日</div>
                 <div class="showtime-date-cell"></div>
                 <div class="showtime-date-cell"></div>
                 <div class="showtime-date-cell"></div>
@@ -2421,7 +2421,7 @@
 
             <!-- 日時・シアター・枚数・金額バー -->
             <div class="ticket-info-bar" style="width: calc(100% - 30px); margin: 0 auto;">
-                <div class="ticket-info-cell" id="ticket-date-text">10月27日(火)</div>
+                <div class="ticket-info-cell" id="ticket-date-text">本日</div>
                 <div class="ticket-info-cell" id="ticket-time-text">16:30 〜 17:55</div>
                 <div class="ticket-info-cell" id="ticket-theater-text">シアター11</div>
                 <div class="ticket-info-cell ticket-info-count" id="ticket-count-text">0 / 1枚</div>
@@ -3468,7 +3468,7 @@
         document.getElementById('ticket-movie-en').textContent = globalState.selectedMovieEn || 'Purple Hawk';
         
         if (globalState.selectedShowtime) {
-            document.getElementById('ticket-date-text').textContent = '10月27日(火)';
+            document.getElementById('ticket-date-text').textContent = '本日';
             document.getElementById('ticket-time-text').textContent = `${globalState.selectedShowtime.startTime} 〜 ${globalState.selectedShowtime.endTime}`;
             document.getElementById('ticket-theater-text').textContent = globalState.selectedShowtime.theater;
         }
